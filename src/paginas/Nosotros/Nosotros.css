@@ -1,0 +1,195 @@
+.nosotros-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+}
+
+.nosotros-contenido {
+  margin-top: 110px;
+  padding: 0;
+}
+
+.nosotros-hero {
+  background: linear-gradient(rgba(255, 148, 67, 0.9), rgba(255, 148, 67, 0.8)),
+              url('../../Img_productos/Mascotas.jpg') center/cover;
+  color: white;
+  text-align: center;
+  padding: 80px 20px;
+  margin-bottom: 40px;
+}
+
+.nosotros-hero h1 {
+  font-size: 3rem;
+  margin-bottom: 20px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.nosotros-hero p {
+  font-size: 1.3rem;
+  max-width: 600px;
+  margin: 0 auto;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.nosotros-secciones {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px 60px;
+}
+
+.nosotros-seccion {
+  margin-bottom: 60px;
+  background: white;
+  border-radius: 15px;
+  padding: 40px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  border-left: 5px solid #ff9443;
+}
+
+.seccion-contenido h2 {
+  color: #ff9443;
+  font-size: 2.2rem;
+  margin-bottom: 25px;
+  border-bottom: 3px solid #ffe0b2;
+  padding-bottom: 10px;
+}
+
+.seccion-contenido p {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: #555;
+  margin-bottom: 20px;
+}
+
+.productos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 30px;
+  margin-top: 30px;
+}
+
+.producto-item {
+  text-align: center;
+  padding: 25px;
+  background: #f8f9fa;
+  border-radius: 10px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.producto-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(255, 148, 67, 0.2);
+  border-color: #ff9443;
+}
+
+.producto-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+}
+
+.producto-item h3 {
+  color: #ff9443;
+  margin-bottom: 15px;
+  font-size: 1.4rem;
+}
+
+.producto-item p {
+  color: #666;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.mision-vision {
+  background: linear-gradient(135deg, #ff9443, #ffb74d) !important;
+  color: white;
+}
+
+.valores-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 30px;
+}
+
+.valor-item {
+  text-align: center;
+  padding: 25px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.valor-item h3 {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  color: white;
+}
+
+.valor-item p {
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.7;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .nosotros-contenido {
+    margin-top: 70px;
+  }
+
+  .nosotros-hero {
+    padding: 50px 20px;
+  }
+
+  .nosotros-hero h1 {
+    font-size: 2.2rem;
+  }
+
+  .nosotros-hero p {
+    font-size: 1.1rem;
+  }
+
+  .nosotros-seccion {
+    padding: 25px;
+    margin-bottom: 40px;
+  }
+
+  .seccion-contenido h2 {
+    font-size: 1.8rem;
+  }
+
+  .productos-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .valores-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .producto-item {
+    padding: 20px;
+  }
+
+  .valor-item {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nosotros-hero h1 {
+    font-size: 1.8rem;
+  }
+
+  .nosotros-hero p {
+    font-size: 1rem;
+  }
+
+  .nosotros-seccion {
+    padding: 20px;
+  }
+
+  .seccion-contenido h2 {
+    font-size: 1.5rem;
+  }
+}

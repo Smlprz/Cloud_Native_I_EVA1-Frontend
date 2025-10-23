@@ -1,0 +1,147 @@
+.login-page {
+  background-color: #f8bd9880;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.login-container {
+  background-color: white;
+  padding: 2.5rem;
+  border-radius: 15px;
+  box-shadow: 0 10px 30px rgba(255, 148, 67, 0.2);
+  width: 100%;
+  max-width: 450px;
+  border: 2px solid #ff9443;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.login-logo {
+  height: 80px;
+  width: auto;
+  margin-bottom: 1rem;
+}
+
+.login-header h2 {
+  color: #ff9443;
+  margin-bottom: 1.5rem;
+  font-size: 1.8rem;
+  font-weight: bold;
+}
+
+.login-container form {
+  display: flex;
+  flex-direction: column;
+}
+
+.login-container label {
+  margin-bottom: 0.5rem;
+  color: #5e4f34;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.login-container input {
+  padding: 0.8rem;
+  margin-bottom: 1.2rem;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s;
+}
+
+.login-container input:focus {
+  outline: none;
+  border-color: #ff9443;
+  box-shadow: 0 0 8px rgba(255, 148, 67, 0.3);
+}
+
+.submit-btn {
+  background: linear-gradient(135deg, #ff9443, #e6833a);
+  color: white;
+  padding: 1rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 0.5rem;
+}
+
+.submit-btn:hover {
+  background: linear-gradient(135deg, #e6833a, #ff9443);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 148, 67, 0.4);
+}
+
+.login-options {
+  text-align: center;
+  margin: 1.5rem 0;
+  padding-top: 1.5rem;
+  border-top: 1px solid #eee;
+}
+
+.switch-mode-btn {
+  background: none;
+  border: none;
+  color: #ff9443;
+  cursor: pointer;
+  font-size: 0.9rem;
+  text-decoration: underline;
+  transition: color 0.3s;
+}
+
+.switch-mode-btn:hover {
+  color: #e6833a;
+}
+
+#error-message {
+  text-align: center;
+  margin: 1rem 0;
+  font-weight: bold;
+  padding: 0.8rem;
+  border-radius: 5px;
+  background-color: rgba(255, 148, 67, 0.1);
+}
+
+.back-home {
+  display: block;
+  width: 100%;
+  background: none;
+  border: 2px solid #ff9443;
+  color: #ff9443;
+  padding: 0.8rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 1rem;
+  font-weight: bold;
+}
+
+.back-home:hover {
+  background: #ff9443;
+  color: white;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 480px) {
+  .login-container {
+    padding: 2rem 1.5rem;
+  }
+  
+  .login-logo {
+    height: 60px;
+  }
+  
+  .login-header h2 {
+    font-size: 1.5rem;
+  }
+}
