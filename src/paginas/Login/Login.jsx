@@ -8,50 +8,90 @@ const Login = ({ onBack, onLoginSuccess, onNavigate }) => {
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isRegister, setIsRegister] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
 
-  const USERCLI = 'Cliente321';
-  const PASSCLI = '321123';
-  const USERADM = 'admin';
-  const PASSADM = 'root';
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    setIsLoading(true);
+    setErrorMessage('');
+
     if (isRegister) {
+      // Lógica de registro (pendiente de implementar)
       setErrorMessage('Cuenta creada exitosamente - Ya puedes iniciar sesión');
       setTimeout(() => {
         setIsRegister(false);
         setErrorMessage('');
       }, 2000);
     } else {
-      if (username === USERCLI && password === PASSCLI) {
-        login({ 
-          username, 
-          nombre: 'Cliente', 
-          email: username + '@tiendamascotas.com' 
-        }, false);
-        setErrorMessage('¡Bienvenido Cliente!');
-        setTimeout(() => {
-          onLoginSuccess();
-          onNavigate('inicio');
-        }, 1000);
-      } else if (username === USERADM && password === PASSADM) {
-        login({ 
-          username, 
-          nombre: 'Administrador',
-          email: 'admin@tiendamascotas.com'
-        }, true);
-        setErrorMessage('¡Bienvenido Administrador!');
-        setTimeout(() => {
-          onLoginSuccess();
-          onNavigate('admin-dashboard');
-        }, 1000);
-      } else {
-        setErrorMessage('Usuario o contraseña incorrectos');
+      try {
+        console.log('🔐 Intentando login con:', { username, password });
+        
+        // Llamada al backend Spring Boot
+        const response = await fetch('http://localhost:8080/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username: username,
+            password: password
+          }),
+        });
+
+        console.log('📡 Respuesta del servidor:', response.status);
+
+        if (!response.ok) {
+          throw new Error(`Error HTTP: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('📊 Datos recibidos:', data);
+
+        if (data.success) {
+          // Login exitoso - Usar userType del backend
+          const userType = data.userType; // 1=Admin, 2=Vendedor, 3=Cliente
+          const isAdminUser = data.isAdmin || userType === 1;
+          
+          const userData = {
+            username: data.username,
+            nombre: data.nombre || data.username,
+            email: data.email,
+            userId: data.userId,
+            userType: userType
+          };
+
+          console.log('✅ Login exitoso:', userData, 'userType:', userType, 'isAdmin:', isAdminUser);
+          
+          // Usar el hook useAuth para guardar en localStorage
+          login(userData, isAdminUser);
+          
+          setErrorMessage(`¡Bienvenido ${data.username}!`);
+          
+          setTimeout(() => {
+            onLoginSuccess();
+            // Navegar según el tipo de usuario
+            if (userType === 1) {
+              console.log('🔄 Navegando a admin-dashboard');
+              onNavigate('admin-dashboard'); // Administrador
+            } else if (userType === 2) {
+              console.log('🔄 Navegando a sales-dashboard');
+              onNavigate('sales-dashboard'); // Vendedor
+            } else {
+              console.log('🔄 Navegando a inicio');
+              onNavigate('inicio'); // Cliente
+            }
+          }, 1000);
+        } else {
+          setErrorMessage(data.message || 'Usuario o contraseña incorrectos');
+        }
+      } catch (error) {
+        console.error('❌ Error en login:', error);
+        setErrorMessage('Error de conexión con el servidor. Verifica que el backend esté ejecutándose en http://localhost:8080');
       }
     }
     
+    setIsLoading(false);
     setUsername('');
     setPassword('');
   };
@@ -62,6 +102,16 @@ const Login = ({ onBack, onLoginSuccess, onNavigate }) => {
         <div className="login-header">
           <img src={logo} alt="Logo Tienda Mascotas" className="login-logo" />
           <h2>{isRegister ? 'Crear Cuenta' : 'Iniciar Sesión'}</h2>
+          <p style={{color: '#666', fontSize: '0.9rem', textAlign: 'center', marginTop: '0.5rem'}}>
+            {!isRegister && (
+              <>
+                <strong>Usuarios de prueba:</strong><br/>
+                👑 Admin: VIOYARZUNS / ADMIN321123<br/>
+                👤 Cliente: SAPEREZ / CLIENT321123<br/>
+                🛍️ Vendedor: TOLOPEZ / SALES321123
+              </>
+            )}
+          </p>
         </div>
         
         <form onSubmit={handleSubmit}>
@@ -71,8 +121,9 @@ const Login = ({ onBack, onLoginSuccess, onNavigate }) => {
             id="username" 
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            placeholder="Ingresa tu nombre de usuario" 
+            placeholder="Ej: VIOYARZUNS" 
             required 
+            disabled={isLoading}
           />
           
           <label htmlFor="password">Contraseña:</label>
@@ -81,8 +132,9 @@ const Login = ({ onBack, onLoginSuccess, onNavigate }) => {
             id="password" 
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Ingresa tu contraseña" 
+            placeholder="Ej: ADMIN321123" 
             required 
+            disabled={isLoading}
           />
 
           {isRegister && (
@@ -93,6 +145,7 @@ const Login = ({ onBack, onLoginSuccess, onNavigate }) => {
                 id="confirm-password" 
                 placeholder="Confirma tu contraseña" 
                 required 
+                disabled={isLoading}
               />
               
               <label htmlFor="email">Email:</label>
@@ -101,12 +154,17 @@ const Login = ({ onBack, onLoginSuccess, onNavigate }) => {
                 id="email" 
                 placeholder="Ingresa tu email" 
                 required 
+                disabled={isLoading}
               />
             </>
           )}
 
-          <button type="submit" className="submit-btn">
-            {isRegister ? 'Registrarse' : 'Iniciar Sesión'}
+          <button 
+            type="submit" 
+            className="submit-btn"
+            disabled={isLoading}
+          >
+            {isLoading ? '🔐 Conectando...' : (isRegister ? 'Registrarse' : 'Iniciar Sesión')}
           </button>
         </form>
 
@@ -115,6 +173,7 @@ const Login = ({ onBack, onLoginSuccess, onNavigate }) => {
             type="button"
             className="switch-mode-btn"
             onClick={() => setIsRegister(!isRegister)}
+            disabled={isLoading}
           >
             {isRegister ? '¿Ya tienes cuenta? Inicia Sesión' : '¿No tienes cuenta? Regístrate'}
           </button>
@@ -122,15 +181,26 @@ const Login = ({ onBack, onLoginSuccess, onNavigate }) => {
 
         {errorMessage && (
           <p id="error-message" style={{ 
-            color: errorMessage.includes('Bienvenido') || errorMessage.includes('creada') ? 'green' : 'red' 
+            color: errorMessage.includes('Bienvenido') || errorMessage.includes('creada') ? 'green' : 'red',
+            fontSize: '0.9rem',
+            textAlign: 'center'
           }}>
             {errorMessage}
           </p>
         )}
 
-        <button className="back-home" onClick={onBack}>
+        <button 
+          className="back-home" 
+          onClick={onBack}
+          disabled={isLoading}
+        >
           ← Volver al inicio
         </button>
+
+        {/* Debug info */}
+        <div style={{marginTop: '1rem', fontSize: '0.8rem', color: '#999', textAlign: 'center'}}>
+          Backend: http://localhost:8080
+        </div>
       </div>
     </div>
   );

@@ -1,68 +1,60 @@
-// Karma configuration
-// Generated on Mon Oct 27 2025 22:08:00 GMT-0300 (hora de verano de Chile)
-
 module.exports = function(config) {
   config.set({
-
-    // base path that will be used to resolve all patterns (eg. files, exclude)
-    basePath: '',
-
-
-    // frameworks to use
-    // available frameworks: https://www.npmjs.com/search?q=keywords:karma-adapter
     frameworks: ['jasmine'],
-
-
-    // list of files / patterns to load in the browser
+    
     files: [
+      'src/**/*.test.js', 
+      'src/**/*.spec.js'
     ],
 
-
-    // list of files / patterns to exclude
-    exclude: [
-    ],
-
-
-    // preprocess matching files before serving them to the browser
-    // available preprocessors: https://www.npmjs.com/search?q=keywords:karma-preprocessor
     preprocessors: {
+      'src/**/*.test.js': ['webpack', 'sourcemap'],
+      'src/**/*.spec.js': ['webpack', 'sourcemap']
     },
-
-
-    // test results reporter to use
-    // possible values: 'dots', 'progress'
-    // available reporters: https://www.npmjs.com/search?q=keywords:karma-reporter
-    reporters: ['progress'],
-
-
-    // web server port
-    port: 9876,
-
-
-    // enable / disable colors in the output (reporters and logs)
-    colors: true,
-
-
-    // level of logging
-    // possible values: config.LOG_DISABLE || config.LOG_ERROR || config.LOG_WARN || config.LOG_INFO || config.LOG_DEBUG
-    logLevel: config.LOG_INFO,
-
-
-    // enable / disable watching file and executing tests whenever any file changes
-    autoWatch: true,
-
-
-    // start these browsers
-    // available browser launchers: https://www.npmjs.com/search?q=keywords:karma-launcher
-    browsers: ['Chrome'],
-
-
-    // Continuous Integration mode
-    // if true, Karma captures browsers, runs the tests and exits
-    singleRun: false,
-
-    // Concurrency level
-    // how many browser instances should be started simultaneously
-    concurrency: Infinity
-  })
-}
+    
+    webpack: {
+      mode: 'development',
+      module: {
+        rules: [
+          {
+            test: /\.(js|jsx)$/,
+            exclude: /node_modules/,
+            use: {
+              loader: 'babel-loader',
+              options: {
+                presets: [
+                  ['@babel/preset-env', {targets: {node: 'current'}}],
+                  '@babel/preset-react'
+                ]
+              }
+            }
+          }
+        ]
+      },
+      resolve: {
+        extensions: ['.js', '.jsx']
+      }
+    },
+    
+    plugins: [
+      'karma-jasmine',
+      'karma-webpack',
+      'karma-chrome-launcher',
+      '@chiragrupani/karma-chromium-edge-launcher',
+      'karma-sourcemap-loader',
+      'karma-jasmine-html-reporter' // ✅ NUEVO
+    ],
+    
+    reporters: ['progress', 'kjhtml'], // ✅ NUEVO
+    
+    client: {
+      jasmine: {
+        random: false
+      },
+      clearContext: false // ✅ NUEVO
+    },
+    
+    browsers: ['Edge'],
+    singleRun: false
+  });
+};

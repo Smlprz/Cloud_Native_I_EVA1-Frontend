@@ -1,3 +1,4 @@
+// App.js - VERSIÓN COMPLETA ACTUALIZADA
 import React, { useState } from 'react';
 import { CarritoProvider } from './context/CarritoContext';
 import Inicio from './paginas/Inicio/Inicio';
@@ -11,14 +12,25 @@ import CarritoCompra from './paginas/CarritoCompra/CarritoCompra';
 import Checkout from './paginas/Checkout/Checkout';
 import AdminDashboard from './paginas/Admin/AdminDashboard';
 import AdminUsers from './paginas/Admin/AdminUsers';
+// IMPORTACIONES VENDEDOR
+import VendedorDashboard from './paginas/Vendedor/VendedorDashboard';
+import VendedorProductos from './paginas/Vendedor/VendedorProductos';
+import VendedorCrearProducto from './paginas/Vendedor/VendedorCrearProducto';
+import VendedorEditarProducto from './paginas/Vendedor/VendedorEditarProducto';
 import './App.css';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('inicio');
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
+  
   const navegarADetalleProducto = (productoId) => {
     setProductoSeleccionado(productoId);
     setCurrentPage('detalle-producto');
+  };
+
+  const navegarAEditarProducto = (productoId) => {
+    setProductoSeleccionado(productoId);
+    setCurrentPage('vendedor-editar-producto');
   };
 
   const renderPage = () => {
@@ -29,6 +41,28 @@ function App() {
           onNavigate={setCurrentPage}
           onBack={() => setCurrentPage('inicio')}
         />;
+      
+      // RUTAS VENDEDOR
+      case 'sales-dashboard':
+        return <VendedorDashboard 
+          onNavigate={setCurrentPage}
+        />;
+      case 'vendedor-productos':
+        return <VendedorProductos 
+          onNavigate={setCurrentPage}
+          onDetalleProducto={navegarADetalleProducto}
+        />;
+      case 'vendedor-crear-producto':
+        return <VendedorCrearProducto 
+          onNavigate={setCurrentPage}
+        />;
+      case 'vendedor-editar-producto':
+        return <VendedorEditarProducto 
+          onNavigate={setCurrentPage}
+          productoId={productoSeleccionado}
+        />;
+
+      // RUTAS EXISTENTES
       case 'productos':
         return <Productos 
           onLoginClick={() => setCurrentPage('login')}
@@ -129,4 +163,3 @@ function App() {
 }
 
 export default App;
-
