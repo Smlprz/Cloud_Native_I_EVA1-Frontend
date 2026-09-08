@@ -1,4 +1,3 @@
-// App.js - VERSIÓN COMPLETA ACTUALIZADA
 import React, { useState } from 'react';
 import { CarritoProvider } from './context/CarritoContext';
 import Inicio from './paginas/Inicio/Inicio';
@@ -12,7 +11,6 @@ import CarritoCompra from './paginas/CarritoCompra/CarritoCompra';
 import Checkout from './paginas/Checkout/Checkout';
 import AdminDashboard from './paginas/Admin/AdminDashboard';
 import AdminUsers from './paginas/Admin/AdminUsers';
-// IMPORTACIONES VENDEDOR
 import VendedorDashboard from './paginas/Vendedor/VendedorDashboard';
 import VendedorProductos from './paginas/Vendedor/VendedorProductos';
 import VendedorCrearProducto from './paginas/Vendedor/VendedorCrearProducto';
@@ -33,6 +31,12 @@ function App() {
     setCurrentPage('vendedor-editar-producto');
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('loggedUser');
+    setCurrentPage('inicio');
+    window.location.reload();
+  };
+
   const renderPage = () => {
     switch(currentPage) {
       case 'login':
@@ -42,15 +46,15 @@ function App() {
           onBack={() => setCurrentPage('inicio')}
         />;
       
-      // RUTAS VENDEDOR
       case 'sales-dashboard':
         return <VendedorDashboard 
           onNavigate={setCurrentPage}
+          onLogout={handleLogout}
         />;
       case 'vendedor-productos':
         return <VendedorProductos 
           onNavigate={setCurrentPage}
-          onDetalleProducto={navegarADetalleProducto}
+          onEditarProducto={navegarAEditarProducto}
         />;
       case 'vendedor-crear-producto':
         return <VendedorCrearProducto 
@@ -62,7 +66,6 @@ function App() {
           productoId={productoSeleccionado}
         />;
 
-      // RUTAS EXISTENTES
       case 'productos':
         return <Productos 
           onLoginClick={() => setCurrentPage('login')}

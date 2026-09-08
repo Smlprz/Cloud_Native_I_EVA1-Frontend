@@ -1,32 +1,87 @@
-// VendedorDashboard.jsx - ACTUALIZADO CON LOGO
 import React, { useState, useEffect } from 'react';
 import { vendedorAPI } from '../../utils/api';
-import { logo } from '../../hooks/useCarrito'; // Importar logo existente
 import './VendedorDashboard.css';
 
-const VendedorDashboard = ({ onNavigate }) => {
+const VendedorDashboard = ({ onNavigate, onLogout }) => {
   const [estadisticas, setEstadisticas] = useState(null);
+  const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const user = JSON.parse(localStorage.getItem('loggedUser') || '{}');
 
   useEffect(() => {
-    cargarEstadisticas();
+    cargarDatos();
   }, []);
 
-  const cargarEstadisticas = async () => {
+  const cargarDatos = async () => {
     try {
       setLoading(true);
-      const response = await vendedorAPI.obtenerEstadisticas();
-      if (response.success) {
-        setEstadisticas(response.data);
+      
+     
+      const [productosResponse, statsResponse] = await Promise.all([
+        vendedorAPI.obtenerMisProductos(),
+        vendedorAPI.obtenerEstadisticas()
+      ]);
+
+      if (productosResponse.success) {
+        setProductos(productosResponse.data || []);
+      }
+
+      if (statsResponse && statsResponse.success) {
+        setEstadisticas(statsResponse.data);
       }
     } catch (err) {
-      setError('Error al cargar estadísticas: ' + err.message);
+      console.log('Error cargando datos, usando datos locales');
+
+      const productosResponse = await vendedorAPI.obtenerMisProductos();
+      if (productosResponse.success) {
+        setProductos(productosResponse.data || []);
+      }
     } finally {
       setLoading(false);
     }
   };
+
+  const calcularEstadisticasCompletas = () => {
+    if (!productos.length) return null;
+
+    const totalProductos = productos.length;
+    const stockBajo = productos.filter(p => p.stockQuantity < 10).length;
+    const sinStock = productos.filter(p => p.stockQuantity === 0).length;
+    const valorInventarioTotal = productos.reduce((total, producto) => {
+      return total + (producto.priceProduct * producto.stockQuantity);
+    }, 0);
+    
+    const valorInventarioPromedio = valorInventarioTotal / totalProductos;
+    const productosPorCategoria = productos.reduce((acc, producto) => {
+      const categoria = producto.categoria || 'Sin categoría';
+      acc[categoria] = (acc[categoria] || 0) + 1;
+      return acc;
+    }, {});
+
+    return {
+      totalProductos,
+      stockBajo,
+      sinStock,
+      valorInventarioTotal,
+      valorInventarioPromedio,
+      productosPorCategoria,
+      categoriaMasPopular: Object.keys(productosPorCategoria).reduce((a, b) => 
+        productosPorCategoria[a] > productosPorCategoria[b] ? a : b, 'N/A'
+      )
+    };
+  };
+
+  const handleLogout = () => {
+    if (window.confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+      localStorage.removeItem('loggedUser');
+      if (onLogout) {
+        onLogout();
+      }
+    }
+  };
+
+  const statsCompletas = calcularEstadisticasCompletas();
 
   if (loading) return <div className="loading">Cargando dashboard...</div>;
   if (error) return <div className="error">{error}</div>;
@@ -34,40 +89,67 @@ const VendedorDashboard = ({ onNavigate }) => {
   return (
     <div className="vendedor-dashboard">
       <div className="dashboard-header">
-        <img src={logo} alt="Logo Tienda Mascotas" className="header-logo" />
-        <h1>Panel de Vendedor</h1>
-        <p>Bienvenido {user.nombre || user.username}, gestiona tus productos y ventas</p>
+        <div className="header-info">
+          <h1>Panel de Vendedor</h1>
+          <p>Bienvenido {user.nombre || user.username}</p>
+          <div className="user-stats">
+            <span>📧 {user.email}</span>
+            <span>🆔 ID: {user.id}</span>
+          </div>
+        </div>
+        
+        <div className="header-actions">
+          <button className="btn-secondary" onClick={() => onNavigate('inicio')}>
+            🏠 Inicio
+          </button>
+          <button className="btn-danger" onClick={handleLogout}>
+            🚪 Cerrar Sesión
+          </button>
+        </div>
       </div>
 
       <div className="welcome-section">
         <h2>¡Hola {user.nombre || user.username}! 👋</h2>
-        <p>Gestiona tu inventario y mantén tus productos actualizados</p>
+        <p>Gestiona tus productos y ventas</p>
       </div>
 
+      {/* ESTADÍSTICAS PRINCIPALES */}
       <div className="metrics-grid">
-        <div className="metric-card">
+        <div className="metric-card total">
           <div className="metric-icon">📦</div>
           <div className="metric-info">
-            <h3>Total Productos</h3>
-            <span className="metric-value">{estadisticas?.totalProductos || 0}</span>
+            <h3>Mis Productos</h3>
+            <span className="metric-value">{statsCompletas?.totalProductos || 0}</span>
+            <p className="metric-subtitle">Total en inventario</p>
           </div>
         </div>
 
-        <div className="metric-card">
-          <div className="metric-icon">⚠️</div>
-          <div className="metric-info">
-            <h3>Stock Bajo</h3>
-            <span className="metric-value warning">{estadisticas?.stockBajo || 0}</span>
-          </div>
-        </div>
-
-        <div className="metric-card">
+        <div className="metric-card inventory">
           <div className="metric-icon">💰</div>
           <div className="metric-info">
             <h3>Valor Inventario</h3>
             <span className="metric-value">
-              ${estadisticas?.valorInventario?.toLocaleString() || '0'}
+              ${statsCompletas?.valorInventarioTotal?.toLocaleString('es-CL') || '0'}
             </span>
+            <p className="metric-subtitle">Valor total en stock</p>
+          </div>
+        </div>
+
+        <div className="metric-card warning">
+          <div className="metric-icon">⚠️</div>
+          <div className="metric-info">
+            <h3>Stock Bajo</h3>
+            <span className="metric-value">{statsCompletas?.stockBajo || 0}</span>
+            <p className="metric-subtitle">Productos con stock &lt; 10</p>
+          </div>
+        </div>
+
+        <div className="metric-card danger">
+          <div className="metric-icon">🚫</div>
+          <div className="metric-info">
+            <h3>Sin Stock</h3>
+            <span className="metric-value">{statsCompletas?.sinStock || 0}</span>
+            <p className="metric-subtitle">Productos agotados</p>
           </div>
         </div>
       </div>
@@ -86,23 +168,72 @@ const VendedorDashboard = ({ onNavigate }) => {
         >
           📦 Ver Mis Productos
         </button>
+
+        <button 
+          className="action-btn tertiary"
+          onClick={() => onNavigate('productos')}
+        >
+          🛍️ Ver Tienda Principal
+        </button>
       </div>
 
-      <div className="quick-stats">
-        <h3>📊 Resumen Rápido</h3>
-        <div className="stats-grid">
-          <div className="stat-item">
-            <span>Productos Activos:</span>
-            <strong>{estadisticas?.productos || 0}</strong>
+      {/* ESTADÍSTICAS DETALLADAS */}
+      {statsCompletas && (
+        <div className="detailed-stats">
+          <div className="stats-column">
+            <div className="quick-stats">
+              <h3>📈 Resumen Rápido</h3>
+              <div className="stats-grid">
+                <div className="stat-item">
+                  <span>Valor Promedio por Producto:</span>
+                  <strong>${statsCompletas.valorInventarioPromedio?.toFixed(2) || '0'}</strong>
+                </div>
+                <div className="stat-item">
+                  <span>Categoría Más Popular:</span>
+                  <strong className="success">{statsCompletas.categoriaMasPopular}</strong>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="stat-item">
-            <span>Necesita Re-stock:</span>
-            <strong className="warning">{estadisticas?.stockBajo || 0}</strong>
+
+          <div className="stats-column">
+            <div className="distribution-stats">
+              <h3>📊 Distribución por Categoría</h3>
+              <div className="category-distribution">
+                {Object.entries(statsCompletas.productosPorCategoria).map(([categoria, cantidad]) => (
+                  <div key={categoria} className="category-item">
+                    <span className="category-name">{categoria}</span>
+                    <div className="category-bar">
+                      <div 
+                        className="category-fill" 
+                        style={{width: `${(cantidad / statsCompletas.totalProductos) * 100}%`}}
+                      ></div>
+                    </div>
+                    <span className="category-count">{cantidad}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-          <div className="stat-item">
-            <span>Valor Total:</span>
-            <strong className="success">${estadisticas?.valorInventario?.toLocaleString() || '0'}</strong>
-          </div>
+        </div>
+      )}
+
+      {/* BOTONES DE ACCIÓN RÁPIDA */}
+      <div className="quick-actions">
+        <h3>⚡ Acciones Rápidas</h3>
+        <div className="quick-buttons">
+          <button 
+            className="quick-btn"
+            onClick={() => onNavigate('vendedor-crear-producto')}
+          >
+            🆕 Producto Rápido
+          </button>
+          <button 
+            className="quick-btn"
+            onClick={() => onNavigate('vendedor-productos')}
+          >
+            📋 Ver Inventario
+          </button>
         </div>
       </div>
     </div>

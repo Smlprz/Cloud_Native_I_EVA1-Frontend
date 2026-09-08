@@ -6,9 +6,7 @@ const Sidebar = ({ currentPage, onNavigate }) => {
   const menuItems = [
     { id: 'admin-dashboard', label: 'Dashboard' },
     { id: 'admin-usuarios', label: 'Usuarios' },
-    { id: 'admin-inventario', label: 'Inventario' },
-    { id: 'admin-reportes', label: 'Reportes' },
-    { id: 'admin-empleados', label: 'Empleados' },
+    { id: 'admin-productos', label: 'Productos' },
   ];
 
   return (

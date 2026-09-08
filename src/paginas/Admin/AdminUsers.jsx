@@ -9,15 +9,19 @@ const AdminUsers = ({ onNavigate, currentPage }) => {
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
   const [nuevoUsuario, setNuevoUsuario] = useState({
     nombre: '',
-    apellido: '',
+    apellidoPaterno: '',
+    apellidoMaterno: '',
     email: '',
     username: '',
     password: '',
     telefono: '',
     direccion: '',
-    userTypeId: 3 // Por defecto Cliente
+    run: '',
+    dv: '0',
+    userTypeId: 3
   });
 
   React.useEffect(() => {
@@ -52,19 +56,55 @@ const AdminUsers = ({ onNavigate, currentPage }) => {
   };
 
   const handleNewUser = () => {
-    setShowModal(true);
-  };
-
-  const handleCloseModal = () => {
-    setShowModal(false);
+    setEditingUser(null);
     setNuevoUsuario({
       nombre: '',
-      apellido: '',
+      apellidoPaterno: '',
+      apellidoMaterno: '',
       email: '',
       username: '',
       password: '',
       telefono: '',
       direccion: '',
+      run: '',
+      dv: '0',
+      userTypeId: 3
+    });
+    setShowModal(true);
+  };
+
+  const handleEditUser = (usuario) => {
+    setEditingUser(usuario);
+    setNuevoUsuario({
+      nombre: usuario.nombre || '',
+      apellidoPaterno: usuario.apellidoPaterno || '',
+      apellidoMaterno: usuario.apellidoMaterno || '',
+      email: usuario.email || '',
+      username: usuario.username || '',
+      password: '',
+      telefono: usuario.telefono || '',
+      direccion: usuario.direccion || '',
+      run: usuario.run || '',
+      dv: usuario.dv || '0',
+      userTypeId: usuario.userTypeId || 3
+    });
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setEditingUser(null);
+    setNuevoUsuario({
+      nombre: '',
+      apellidoPaterno: '',
+      apellidoMaterno: '',
+      email: '',
+      username: '',
+      password: '',
+      telefono: '',
+      direccion: '',
+      run: '',
+      dv: '0',
       userTypeId: 3
     });
   };
@@ -79,48 +119,99 @@ const AdminUsers = ({ onNavigate, currentPage }) => {
 
   const handleCreateUser = async () => {
     try {
-      // Validaciones básicas
       if (!nuevoUsuario.nombre || !nuevoUsuario.email || !nuevoUsuario.username || !nuevoUsuario.password) {
         alert('Por favor completa todos los campos obligatorios');
         return;
       }
 
-      // Aquí iría la llamada real al backend para crear usuario
-      // Por ahora simulamos la creación
-      const usuarioCreado = {
-        id: Date.now(), // ID temporal
+      const userData = {
         nombre: nuevoUsuario.nombre,
-        apellido: nuevoUsuario.apellido,
+        apellidoPaterno: nuevoUsuario.apellidoPaterno || nuevoUsuario.nombre,
+        apellidoMaterno: nuevoUsuario.apellidoMaterno || nuevoUsuario.nombre,
         email: nuevoUsuario.email,
         username: nuevoUsuario.username,
-        telefono: nuevoUsuario.telefono,
-        direccion: nuevoUsuario.direccion,
-        tipoUsuario: nuevoUsuario.userTypeId === 1 ? 'ADMIN' : 
-                    nuevoUsuario.userTypeId === 2 ? 'VENDEDOR' : 'CLIENTE',
-        fechaRegistro: new Date().toISOString().split('T')[0],
-        estado: 'Activo'
+        password: nuevoUsuario.password,
+        telefono: nuevoUsuario.telefono || '',
+        direccion: nuevoUsuario.direccion || '',
+        run: nuevoUsuario.run ? parseInt(nuevoUsuario.run) : 25000000,
+        dv: nuevoUsuario.dv || '0',
+        userTypeId: parseInt(nuevoUsuario.userTypeId)
       };
 
-      // Agregar a la lista local (en producción sería llamada API)
-      setUsuarios(prev => [usuarioCreado, ...prev]);
-      
-      alert(`Usuario ${nuevoUsuario.username} creado exitosamente`);
+      if (editingUser) {
+        const response = await fetch(`http://localhost:8080/api/admin/usuarios/${editingUser.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(userData),
+        });
+
+        if (response.ok) {
+          await cargarUsuarios();
+          alert(`Usuario ${nuevoUsuario.username} actualizado exitosamente`);
+        } else {
+          throw new Error('Error al actualizar usuario');
+        }
+      } else {
+        const response = await fetch('http://localhost:8080/api/admin/usuarios', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(userData),
+        });
+
+        if (response.ok) {
+          await cargarUsuarios();
+          alert(`Usuario ${nuevoUsuario.username} creado exitosamente`);
+        } else {
+          throw new Error('Error al crear usuario');
+        }
+      }
+
       handleCloseModal();
     } catch (error) {
-      console.error('Error creando usuario:', error);
-      alert('Error al crear el usuario');
+      console.error('Error:', error);
+      alert('Error al procesar la solicitud');
     }
   };
 
-  const handleEditUser = (usuario) => {
-    alert(`Editar usuario: ${usuario.username} (Funcionalidad en desarrollo)`);
+  const handleDeleteUser = async (usuario) => {
+    if (window.confirm(`¿Estás seguro de eliminar al usuario ${usuario.username}?`)) {
+      try {
+        const response = await fetch(`http://localhost:8080/api/admin/usuarios/${usuario.id}`, {
+          method: 'DELETE',
+        });
+
+        if (response.ok) {
+          await cargarUsuarios();
+          alert(`Usuario ${usuario.username} eliminado`);
+        } else {
+          throw new Error('Error al eliminar usuario');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error al eliminar el usuario');
+      }
+    }
   };
 
-  const handleDeleteUser = (usuario) => {
-    if (window.confirm(`¿Estás seguro de eliminar al usuario ${usuario.username}?`)) {
-      // Eliminar de la lista local (en producción sería llamada API)
-      setUsuarios(prev => prev.filter(u => u.id !== usuario.id));
-      alert(`Usuario ${usuario.username} eliminado`);
+  const getTipoUsuario = (userTypeId) => {
+    switch(userTypeId) {
+      case 1: return 'ADMIN';
+      case 2: return 'VENDEDOR';
+      case 3: return 'CLIENTE';
+      default: return 'CLIENTE';
+    }
+  };
+
+  const getBadgeClass = (userTypeId) => {
+    switch(userTypeId) {
+      case 1: return 'badge-admin';
+      case 2: return 'badge-vendedor';
+      case 3: return 'badge-cliente';
+      default: return 'badge-cliente';
     }
   };
 
@@ -131,7 +222,7 @@ const AdminUsers = ({ onNavigate, currentPage }) => {
       <div className="admin-layout">
         <Sidebar currentPage={currentPage} onNavigate={onNavigate} />
         <main className="admin-main">
-          <div style={{ textAlign: 'center', padding: '50px' }}>
+          <div className="loading-state">
             <h3>Cargando usuarios...</h3>
           </div>
         </main>
@@ -165,68 +256,38 @@ const AdminUsers = ({ onNavigate, currentPage }) => {
               </tr>
             </thead>
             <tbody>
-              {usuarios.map((usuario, index) => (
-                <tr key={usuario.id || index}>
+              {usuarios.map((usuario) => (
+                <tr key={usuario.id}>
                   <td>{usuario.id}</td>
                   <td>{usuario.username || 'N/A'}</td>
-                  <td>{usuario.nombre} {usuario.apellido}</td>
+                  <td>{usuario.nombre} {usuario.apellidoPaterno}</td>
                   <td>{usuario.email}</td>
                   <td>
-                    <span style={{
-                      padding: '4px 8px',
-                      borderRadius: '12px',
-                      fontSize: '12px',
-                      fontWeight: 'bold',
-                      backgroundColor: 
-                        usuario.tipoUsuario === 'ADMIN' ? '#ff9443' :
-                        usuario.tipoUsuario === 'VENDEDOR' ? '#2196f3' : '#4caf50',
-                      color: 'white'
-                    }}>
-                      {usuario.tipoUsuario || 'CLIENTE'}
+                    <span className={`badge ${getBadgeClass(usuario.userTypeId)}`}>
+                      {getTipoUsuario(usuario.userTypeId)}
                     </span>
                   </td>
                   <td>{usuario.telefono || 'N/A'}</td>
                   <td>
-                    <span style={{
-                      padding: '4px 8px',
-                      borderRadius: '12px',
-                      fontSize: '12px',
-                      fontWeight: 'bold',
-                      backgroundColor: '#4caf50',
-                      color: 'white'
-                    }}>
+                    <span className="badge badge-activo">
                       Activo
                     </span>
                   </td>
                   <td>
-                    <button 
-                      onClick={() => handleEditUser(usuario)}
-                      style={{
-                        padding: '6px 12px',
-                        margin: '2px',
-                        backgroundColor: '#2196f3',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Editar
-                    </button>
-                    <button 
-                      onClick={() => handleDeleteUser(usuario)}
-                      style={{
-                        padding: '6px 12px',
-                        margin: '2px',
-                        backgroundColor: '#f44336',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Eliminar
-                    </button>
+                    <div className="table-actions">
+                      <button 
+                        onClick={() => handleEditUser(usuario)}
+                        className="btn-action btn-edit"
+                      >
+                        Editar
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteUser(usuario)}
+                        className="btn-action btn-delete"
+                      >
+                        Eliminar
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -234,140 +295,143 @@ const AdminUsers = ({ onNavigate, currentPage }) => {
           </table>
         </div>
 
-        {/* Modal para nuevo usuario */}
         {showModal && (
-          <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            zIndex: 1000
-          }}>
-            <div style={{
-              backgroundColor: 'white',
-              padding: '24px',
-              borderRadius: '8px',
-              width: '90%',
-              maxWidth: '500px',
-              maxHeight: '90vh',
-              overflowY: 'auto'
-            }}>
-              <h3 style={{ marginTop: 0 }}>Crear Nuevo Usuario</h3>
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <h3 style={{ marginTop: 0 }}>
+                {editingUser ? 'Editar Usuario' : 'Crear Nuevo Usuario'}
+              </h3>
               
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>
-                  Nombre *
-                </label>
+              <div className="form-group">
+                <label className="form-label">Nombre *</label>
                 <input
                   type="text"
                   name="nombre"
                   value={nuevoUsuario.nombre}
                   onChange={handleInputChange}
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px'
-                  }}
+                  className="form-input"
                   placeholder="Ingresa el nombre"
                 />
               </div>
 
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>
-                  Apellido
-                </label>
+              <div className="form-group">
+                <label className="form-label">Apellido Paterno *</label>
                 <input
                   type="text"
-                  name="apellido"
-                  value={nuevoUsuario.apellido}
+                  name="apellidoPaterno"
+                  value={nuevoUsuario.apellidoPaterno}
                   onChange={handleInputChange}
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px'
-                  }}
-                  placeholder="Ingresa el apellido"
+                  className="form-input"
+                  placeholder="Ingresa el apellido paterno"
                 />
               </div>
 
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>
-                  Email *
-                </label>
+              <div className="form-group">
+                <label className="form-label">Apellido Materno</label>
+                <input
+                  type="text"
+                  name="apellidoMaterno"
+                  value={nuevoUsuario.apellidoMaterno}
+                  onChange={handleInputChange}
+                  className="form-input"
+                  placeholder="Ingresa el apellido materno"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Email *</label>
                 <input
                   type="email"
                   name="email"
                   value={nuevoUsuario.email}
                   onChange={handleInputChange}
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px'
-                  }}
+                  className="form-input"
                   placeholder="Ingresa el email"
                 />
               </div>
 
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>
-                  Username *
-                </label>
+              <div className="form-group">
+                <label className="form-label">Username *</label>
                 <input
                   type="text"
                   name="username"
                   value={nuevoUsuario.username}
                   onChange={handleInputChange}
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px'
-                  }}
+                  className="form-input"
                   placeholder="Ingresa el username"
                 />
               </div>
 
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>
-                  Contraseña *
+              <div className="form-group">
+                <label className="form-label">
+                  {editingUser ? 'Nueva Contraseña (dejar en blanco para no cambiar)' : 'Contraseña *'}
                 </label>
                 <input
                   type="password"
                   name="password"
                   value={nuevoUsuario.password}
                   onChange={handleInputChange}
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px'
-                  }}
-                  placeholder="Ingresa la contraseña"
+                  className="form-input"
+                  placeholder={editingUser ? "Nueva contraseña" : "Ingresa la contraseña"}
                 />
               </div>
 
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>
-                  Tipo de Usuario
-                </label>
+              <div className="form-group">
+                <label className="form-label">RUN</label>
+                <input
+                  type="number"
+                  name="run"
+                  value={nuevoUsuario.run}
+                  onChange={handleInputChange}
+                  className="form-input"
+                  placeholder="Ej: 12345678"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">DV</label>
+                <input
+                  type="text"
+                  name="dv"
+                  value={nuevoUsuario.dv}
+                  onChange={handleInputChange}
+                  className="form-input"
+                  placeholder="Ej: 9"
+                  maxLength="1"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Teléfono</label>
+                <input
+                  type="tel"
+                  name="telefono"
+                  value={nuevoUsuario.telefono}
+                  onChange={handleInputChange}
+                  className="form-input"
+                  placeholder="Ingresa el teléfono"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Dirección</label>
+                <input
+                  type="text"
+                  name="direccion"
+                  value={nuevoUsuario.direccion}
+                  onChange={handleInputChange}
+                  className="form-input"
+                  placeholder="Ingresa la dirección"
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Tipo de Usuario</label>
                 <select
                   name="userTypeId"
                   value={nuevoUsuario.userTypeId}
                   onChange={handleInputChange}
-                  style={{
-                    width: '100%',
-                    padding: '8px',
-                    border: '1px solid #ddd',
-                    borderRadius: '4px'
-                  }}
+                  className="form-select"
                 >
                   <option value={3}>Cliente</option>
                   <option value={2}>Vendedor</option>
@@ -375,32 +439,18 @@ const AdminUsers = ({ onNavigate, currentPage }) => {
                 </select>
               </div>
 
-              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '20px' }}>
+              <div className="modal-actions">
                 <button
                   onClick={handleCloseModal}
-                  style={{
-                    padding: '8px 16px',
-                    backgroundColor: '#6c757d',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer'
-                  }}
+                  className="btn-action btn-cancel"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleCreateUser}
-                  style={{
-                    padding: '8px 16px',
-                    backgroundColor: '#ff9443',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer'
-                  }}
+                  className="btn-action btn-confirm"
                 >
-                  Crear Usuario
+                  {editingUser ? 'Actualizar Usuario' : 'Crear Usuario'}
                 </button>
               </div>
             </div>

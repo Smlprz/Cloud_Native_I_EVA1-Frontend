@@ -1,4 +1,3 @@
-// src/paginas/Vendedor/VendedorEditarProducto.jsx
 import React, { useState, useEffect } from 'react';
 import { vendedorAPI, productsAPI } from '../../utils/api';
 import './VendedorEditarProducto.css';
@@ -26,10 +25,9 @@ const VendedorEditarProducto = ({ onNavigate, productoId }) => {
   const cargarProducto = async () => {
     try {
       setLoading(true);
-      // Primero obtener el producto
+
       const producto = await productsAPI.getById(productoId);
       
-      // Luego verificar que pertenece al vendedor actual
       const misProductos = await vendedorAPI.obtenerMisProductos();
       const esMiProducto = misProductos.data?.some(p => p.idProduct === productoId);
       
@@ -67,7 +65,7 @@ const VendedorEditarProducto = ({ onNavigate, productoId }) => {
     setSaving(true);
     setError('');
 
-    // Validaciones
+
     if (formData.nombre.length > 30) {
       setError('El nombre no puede exceder 30 caracteres');
       setSaving(false);
@@ -223,8 +221,6 @@ const VendedorEditarProducto = ({ onNavigate, productoId }) => {
               >
                 <option value="alimentos">Alimentos</option>
                 <option value="accesorios">Accesorios</option>
-                <option value="juguetes">Juguetes</option>
-                <option value="salud">Salud e Higiene</option>
               </select>
             </div>
 

@@ -1,59 +1,25 @@
 import React, { useState } from 'react';
 import Carrito from '../Carrito/Carrito';
 import { logo, carritoIcon } from '../../hooks/useCarrito';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../context/AuthContext';
 import { useCarrito } from '../../context/CarritoContext';
 import './Encabezado.css';
 
-const Encabezado = ({ 
-  onLoginClick, 
-  onProductosClick, 
-  onNosotrosClick, 
-  onBlogsClick, 
+const Encabezado = ({
+  onLoginClick,
+  onProductosClick,
+  onNosotrosClick,
+  onBlogsClick,
   onContactoClick,
   onCarritoClick,
 }) => {
   const [mostrarCarrito, setMostrarCarrito] = useState(false);
-  const { isLoggedIn, loggedUser, logout } = useAuth();
+  const { isAuthenticated, nombre, logout } = useAuth();
   const { carrito, eliminarDelCarrito, totalProductos } = useCarrito();
 
-  const handleLoginClick = () => {
-    if (onLoginClick) {
-      onLoginClick();
-    }
-  };
-
-  const handleLogout = () => {
-    logout();
-    window.location.reload();
-  };
-
-  const handleProductosClick = (e) => {
+  const handleClick = (handler) => (e) => {
     e.preventDefault();
-    if (onProductosClick) {
-      onProductosClick();
-    }
-  };
-
-  const handleNosotrosClick = (e) => {
-    e.preventDefault();
-    if (onNosotrosClick) {
-      onNosotrosClick();
-    }
-  };
-
-  const handleBlogsClick = (e) => {
-    e.preventDefault();
-    if (onBlogsClick) {
-      onBlogsClick();
-    }
-  };
-
-  const handleContactoClick = (e) => {
-    e.preventDefault();
-    if (onContactoClick) {
-      onContactoClick();
-    }
+    if (handler) handler();
   };
 
   const handleHomeClick = (e) => {
@@ -63,9 +29,7 @@ const Encabezado = ({
 
   const handleVerCarritoCompleto = () => {
     setMostrarCarrito(false);
-    if (onCarritoClick) {
-      onCarritoClick();
-    }
+    if (onCarritoClick) onCarritoClick();
   };
 
   return (
@@ -73,51 +37,35 @@ const Encabezado = ({
       <div className="logo">
         <img src={logo} alt="Logo Tienda Mascotas" />
       </div>
-      
+
       <nav>
         <a href="#home" onClick={handleHomeClick}>Home</a>
-        <a href="#productos" onClick={handleProductosClick}>Productos</a>
-        <a href="#nosotros" onClick={handleNosotrosClick}>Nosotros</a>
-        <a href="#blogs" onClick={handleBlogsClick}>Blogs</a>
-        <a href="#contacto" onClick={handleContactoClick}>Contacto</a>
+        <a href="#productos" onClick={handleClick(onProductosClick)}>Productos</a>
+        <a href="#nosotros" onClick={handleClick(onNosotrosClick)}>Nosotros</a>
+        <a href="#blogs" onClick={handleClick(onBlogsClick)}>Blogs</a>
+        <a href="#contacto" onClick={handleClick(onContactoClick)}>Contacto</a>
       </nav>
-      
+
       <div className="header-buttons">
-        {isLoggedIn ? (
+        {isAuthenticated ? (
           <div className="user-menu">
-            <span className="welcome-message">
-              ¡Hola, {loggedUser?.nombre || 'Usuario'}!
-            </span>
-            <button 
-              className="logout-btn"
-              onClick={handleLogout}
-            >
-              Cerrar Sesión
+            <span className="welcome-message">Hola, {nombre}!</span>
+            <button className="logout-btn" onClick={logout}>
+              Cerrar Sesion
             </button>
           </div>
         ) : (
-          <button 
-            className="login-btn"
-            onClick={handleLoginClick}
-          >
-            Iniciar Sesión
+          <button className="login-btn" onClick={onLoginClick}>
+            Iniciar Sesion
           </button>
         )}
-        
+
         <div className="cart" onClick={() => setMostrarCarrito(!mostrarCarrito)}>
-          <img 
-            src={carritoIcon} 
-            alt="Carrito de compras" 
-            className="cart-icon"
-          />
-          {totalProductos > 0 && (
-            <span className="cart-count">
-              {totalProductos}
-            </span>
-          )}
-          
+          <img src={carritoIcon} alt="Carrito de compras" className="cart-icon" />
+          {totalProductos > 0 && <span className="cart-count">{totalProductos}</span>}
+
           {mostrarCarrito && (
-            <Carrito 
+            <Carrito
               carrito={carrito}
               eliminarDelCarrito={eliminarDelCarrito}
               onCerrar={() => setMostrarCarrito(false)}

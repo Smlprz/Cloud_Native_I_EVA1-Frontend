@@ -2,8 +2,19 @@ import React from 'react';
 import './Carrito.css';
 
 const Carrito = ({ carrito, eliminarDelCarrito, onCerrar, onVerCarritoCompleto }) => {
-  const totalProductos = carrito.reduce((total, producto) => total + (producto.cantidad || 1), 0);
-  const totalPrecio = carrito.reduce((total, producto) => total + (producto.precio * (producto.cantidad || 1)), 0);
+  // 🆕 VALIDACIÓN CRÍTICA - Si carrito es undefined, usar array vacío
+  const carritoItems = carrito || [];
+  
+  // 🆕 VALIDACIÓN en los cálculos
+  const totalProductos = carritoItems.reduce((total, producto) => 
+    total + ((producto && producto.cantidad) || 1), 0);
+  
+  const totalPrecio = carritoItems.reduce((total, producto) => {
+    if (!producto) return total;
+    const precio = producto.precio || 0;
+    const cantidad = producto.cantidad || 1;
+    return total + (precio * cantidad);
+  }, 0);
 
   return (
     <div className="carrito-dropdown">
@@ -13,40 +24,48 @@ const Carrito = ({ carrito, eliminarDelCarrito, onCerrar, onVerCarritoCompleto }
       </div>
       
       <div className="carrito-content">
-        {carrito.length === 0 ? (
+        {carritoItems.length === 0 ? (
           <p className="carrito-vacio">El carrito está vacío</p>
         ) : (
           <>
             <div className="carrito-items">
-              {carrito.map((producto, index) => (
-                <div key={`${producto.id}-${index}`} className="carrito-item">
-                  <div className="item-info">
-                    <img 
-                      src={producto.imagen} 
-                      alt={producto.nombre} 
-                      className="item-imagen"
-                    />
-                    <div className="item-details">
-                      <h4 className="item-nombre">
-                        {producto.nombre.length > 30 
-                          ? producto.nombre.substring(0, 30) + '...' 
-                          : producto.nombre
-                        }
-                      </h4>
-                      <p className="item-precio">
-                        ${producto.precio.toLocaleString('es-CL')} x {producto.cantidad || 1}
-                      </p>
+              {carritoItems.map((producto, index) => {
+                // 🆕 VALIDACIÓN para cada producto
+                if (!producto) return null;
+                
+                return (
+                  <div key={`${producto.id}-${index}`} className="carrito-item">
+                    <div className="item-info">
+                      <img 
+                        src={producto.imagen || ''} 
+                        alt={producto.nombre || 'Producto'} 
+                        className="item-imagen"
+                        onError={(e) => {
+                          e.target.src = 'https://via.placeholder.com/50x50?text=Imagen';
+                        }}
+                      />
+                      <div className="item-details">
+                        <h4 className="item-nombre">
+                          {producto.nombre && producto.nombre.length > 30 
+                            ? producto.nombre.substring(0, 30) + '...' 
+                            : producto.nombre || 'Producto sin nombre'
+                          }
+                        </h4>
+                        <p className="item-precio">
+                          ${(producto.precio || 0).toLocaleString('es-CL')} x {producto.cantidad || 1}
+                        </p>
+                      </div>
                     </div>
+                    <button 
+                      className="btn-eliminar-item"
+                      onClick={() => eliminarDelCarrito && eliminarDelCarrito(index)}
+                      title="Eliminar producto"
+                    >
+                      ✖
+                    </button>
                   </div>
-                  <button 
-                    className="btn-eliminar-item"
-                    onClick={() => eliminarDelCarrito(index)}
-                    title="Eliminar producto"
-                  >
-                    ✖
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
             
             <div className="carrito-total">
@@ -62,7 +81,7 @@ const Carrito = ({ carrito, eliminarDelCarrito, onCerrar, onVerCarritoCompleto }
       </div>
 
       <div className="carrito-footer">
-        {carrito.length > 0 && (
+        {carritoItems.length > 0 && (
           <button 
             className="btn-ver-carrito-completo"
             onClick={onVerCarritoCompleto}

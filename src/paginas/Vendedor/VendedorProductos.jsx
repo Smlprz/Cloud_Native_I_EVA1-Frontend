@@ -1,9 +1,8 @@
-// src/paginas/Vendedor/VendedorProductos.jsx - CORREGIDO
 import React, { useState, useEffect } from 'react';
 import { vendedorAPI } from '../../utils/api';
 import './VendedorProductos.css';
 
-const VendedorProductos = ({ onNavigate }) => {
+const VendedorProductos = ({ onNavigate, onEditarProducto }) => {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -35,7 +34,7 @@ const VendedorProductos = ({ onNavigate }) => {
       const response = await vendedorAPI.eliminarProducto(id);
       if (response.success) {
         alert('Producto eliminado exitosamente');
-        cargarMisProductos(); // Recargar lista
+        cargarMisProductos();
       }
     } catch (err) {
       alert('Error al eliminar producto: ' + err.message);
@@ -95,7 +94,7 @@ const VendedorProductos = ({ onNavigate }) => {
               <div className="producto-actions">
                 <button 
                   className="btn-secondary"
-                  onClick={() => onNavigate('vendedor-editar-producto')}
+                  onClick={() => onEditarProducto(producto.idProduct)}
                 >
                   ✏️ Editar
                 </button>

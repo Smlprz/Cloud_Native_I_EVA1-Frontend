@@ -7,7 +7,6 @@ import './Admin.css';
 const AdminDashboard = ({ onNavigate, currentPage }) => {
   const isAdmin = localStorage.getItem('isAdmin') === 'true';
   const [estadisticas, setEstadisticas] = useState(null);
-  const [actividades, setActividades] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -25,13 +24,8 @@ const AdminDashboard = ({ onNavigate, currentPage }) => {
   const cargarDatosDashboard = async () => {
     try {
       setLoading(true);
-      const [estadisticasData, actividadesData] = await Promise.all([
-        adminAPI.getEstadisticas(),
-        adminAPI.getActividades()
-      ]);
-      
+      const estadisticasData = await adminAPI.getEstadisticas();
       setEstadisticas(estadisticasData);
-      setActividades(actividadesData);
     } catch (err) {
       console.error('Error cargando dashboard:', err);
       setError('Error al cargar los datos del dashboard');
@@ -58,7 +52,7 @@ const AdminDashboard = ({ onNavigate, currentPage }) => {
       <div className="admin-layout">
         <Sidebar currentPage={currentPage} onNavigate={onNavigate} />
         <main className="admin-main">
-          <div style={{ textAlign: 'center', padding: '50px' }}>
+          <div className="loading-state">
             <h3>Cargando dashboard...</h3>
           </div>
         </main>
@@ -78,8 +72,8 @@ const AdminDashboard = ({ onNavigate, currentPage }) => {
         />
 
         {error && (
-          <div className="card" style={{ background: '#ffebee', borderColor: '#f44336' }}>
-            <p style={{ color: '#d32f2f', margin: 0 }}>{error}</p>
+          <div className="error-message">
+            {error}
           </div>
         )}
 
@@ -106,9 +100,9 @@ const AdminDashboard = ({ onNavigate, currentPage }) => {
               </div>
             </div>
             <div className="card">
-              <strong>Pedidos Pendientes</strong>
+              <strong>Vendedores Activos</strong>
               <div style={{ fontSize: '22px', marginTop: '8px', color: '#2196f3' }}>
-                {estadisticas?.pedidosPendientes || 0}
+                {estadisticas?.vendedoresActivos || 0}
               </div>
             </div>
           </div>
@@ -116,29 +110,14 @@ const AdminDashboard = ({ onNavigate, currentPage }) => {
 
         <div className="card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h3 style={{ margin: 0 }}>Actividades Recientes</h3>
+            <h3 style={{ margin: 0 }}>Acciones Rápidas</h3>
             <button className="btn-new" onClick={handleNewUser}>
               NUEVO USUARIO
             </button>
           </div>
-          <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '12px' }}>
-            <thead>
-              <tr style={{ background: '#f7f7f7' }}>
-                <th style={{ padding: '8px', textAlign: 'left' }}>Fecha</th>
-                <th style={{ padding: '8px', textAlign: 'left' }}>Evento</th>
-                <th style={{ padding: '8px', textAlign: 'left' }}>Usuario</th>
-              </tr>
-            </thead>
-            <tbody>
-              {actividades.map((activity, index) => (
-                <tr key={index}>
-                  <td style={{ padding: '8px' }}>{activity.fecha}</td>
-                  <td style={{ padding: '8px' }}>{activity.evento}</td>
-                  <td style={{ padding: '8px' }}>{activity.usuario}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div style={{ marginTop: '20px', textAlign: 'center', color: '#666' }}>
+            <p>Gestiona usuarios, productos y configuración del sistema desde el menú lateral.</p>
+          </div>
         </div>
       </main>
     </div>
