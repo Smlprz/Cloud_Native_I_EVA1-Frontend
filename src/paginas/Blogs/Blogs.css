@@ -1,0 +1,281 @@
+.blogs-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #fff9f0 0%, #ffe8cc 100%);
+}
+
+.blogs-contenido {
+  margin-top: 110px;
+  padding: 0;
+}
+
+.blogs-hero {
+  background: linear-gradient(rgba(255, 148, 67, 0.9), rgba(255, 148, 67, 0.8)),
+              url('../../Img_productos/Mascotas.jpg') center/cover;
+  color: white;
+  text-align: center;
+  padding: 80px 20px;
+  margin-bottom: 50px;
+}
+
+.blogs-hero h1 {
+  font-size: 3rem;
+  margin-bottom: 20px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.blogs-hero p {
+  font-size: 1.3rem;
+  max-width: 600px;
+  margin: 0 auto;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.noticias-grid {
+  max-width: 1200px;
+  margin: 0 auto 60px;
+  padding: 0 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 30px;
+}
+
+.noticia-card {
+  background: white;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  border-left: 5px solid #ff9443;
+}
+
+.noticia-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 30px rgba(255, 148, 67, 0.2);
+}
+
+.noticia-imagen {
+  height: 200px;
+  background: linear-gradient(135deg, #ff9443, #ffb74d);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.imagen-placeholder {
+  font-size: 4rem;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.imagen-placeholder.gato-jugando {
+  background: linear-gradient(45deg, #ff6b6b, #ffa726);
+}
+
+.imagen-placeholder.perro-esperando {
+  background: linear-gradient(45deg, #4ecdc4, #45b7d1);
+}
+
+.imagen-placeholder.mascota-cepillado {
+  background: linear-gradient(45deg, #96ceb4, #ffcc5c);
+}
+
+.imagen-placeholder.snacks-organicos {
+  background: linear-gradient(45deg, #a8e6cf, #88d8b0);
+}
+
+.noticia-contenido {
+  padding: 25px;
+}
+
+.noticia-contenido h3 {
+  color: #ff9443;
+  font-size: 1.4rem;
+  margin-bottom: 15px;
+  border-bottom: 2px solid #ffe0b2;
+  padding-bottom: 10px;
+}
+
+.noticia-contenido p {
+  color: #555;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  font-size: 1rem;
+}
+
+.noticia-acciones {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.btn-ver-caso {
+  background: #ff9443;
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 25px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 8px rgba(255, 148, 67, 0.3);
+}
+
+.btn-ver-caso:hover {
+  background: #e6833a;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 12px rgba(230, 131, 58, 0.4);
+}
+
+.noticia-fecha {
+  color: #888;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.newsletter-section {
+  background: linear-gradient(135deg, #2c3e50, #34495e);
+  color: white;
+  padding: 60px 20px;
+  margin-top: 40px;
+}
+
+.newsletter-content {
+  max-width: 600px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.newsletter-content h2 {
+  font-size: 2.2rem;
+  margin-bottom: 20px;
+  color: #ff9443;
+}
+
+.newsletter-content p {
+  font-size: 1.1rem;
+  margin-bottom: 30px;
+  opacity: 0.9;
+}
+
+.newsletter-form {
+  display: flex;
+  gap: 15px;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.newsletter-input {
+  flex: 1;
+  padding: 12px 15px;
+  border: none;
+  border-radius: 25px;
+  font-size: 1rem;
+  outline: none;
+}
+
+.newsletter-btn {
+  background: #ff9443;
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 25px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.newsletter-btn:hover {
+  background: #e6833a;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+  .blogs-contenido {
+    margin-top: 70px;
+  }
+
+  .blogs-hero {
+    padding: 50px 20px;
+  }
+
+  .blogs-hero h1 {
+    font-size: 2.2rem;
+  }
+
+  .blogs-hero p {
+    font-size: 1.1rem;
+  }
+
+  .noticias-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 0 15px;
+  }
+
+  .noticia-contenido {
+    padding: 20px;
+  }
+
+  .newsletter-form {
+    flex-direction: column;
+  }
+
+  .newsletter-content h2 {
+    font-size: 1.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .blogs-hero h1 {
+    font-size: 1.8rem;
+  }
+
+  .noticia-imagen {
+    height: 150px;
+  }
+
+  .imagen-placeholder {
+    font-size: 3rem;
+  }
+
+  .noticia-acciones {
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-start;
+  }
+}
+
+.noticia-imagen-real {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.noticia-card:hover .noticia-imagen-real {
+  transform: scale(1.05);
+}
+
+.noticia-imagen {
+  overflow: hidden;
+  position: relative;
+}
+
+.imagen-placeholder {
+  font-size: 4rem;
+  color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.imagen-placeholder.mascota-cepillado {
+  background: linear-gradient(45deg, #96ceb4, #ffcc5c);
+}

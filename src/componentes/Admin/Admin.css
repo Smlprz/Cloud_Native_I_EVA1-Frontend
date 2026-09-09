@@ -1,0 +1,90 @@
+:root {
+  --sidebar-w: 220px;
+  --accent: #ff9443;
+}
+
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--accent);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 10px;
+  box-sizing: border-box;
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+}
+
+.sidebar-logo {
+  max-width: 120px;
+  margin-bottom: 20px;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.menu-link {
+  color: white;
+  text-decoration: none;
+  padding: 12px 15px;
+  border-radius: 6px;
+  margin: 4px 0;
+  transition: background 0.3s;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.menu-link:hover, .menu-link.active {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 12px 20px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.topbar h1 {
+  margin: 0;
+  color: #333;
+  font-size: 24px;
+}
+
+.btn-logout {
+  padding: 8px 14px;
+  background: #ff9443;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-left: 10px;
+}
+
+.btn-logout:hover {
+  background: #e6833a;
+}
+
+.btn-new {
+  background: #000;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+  font-weight: 700;
+}
