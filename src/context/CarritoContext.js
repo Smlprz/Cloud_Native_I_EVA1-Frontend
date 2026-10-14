@@ -1,175 +1,136 @@
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useCallback,
-  useRef,
-} from 'react';
-import { useAuth } from './AuthContext';
-import { productsAPI, carritoAPI } from '../utils/api';
-import { resolverImagen } from '../utils/imagenes';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useAuth } from '../auth/AuthContext';
+import { useToast } from './ToastContext';
+import api from '../api/client';
 
 /**
- * Carrito conectado al microservicio ms-carrito.
- * Todas las operaciones viajan con el access token de Azure (Bearer).
- * Sin sesion iniciada el carrito esta vacio y "Agregar" pide iniciar sesion.
+ * Carrito conectado a ms-carrito. Sin sesion el carrito esta vacio y "Agregar" pide iniciar sesion.
+ * Cada accion refleja la respuesta del servidor (fuente unica de verdad) y avisa el resultado.
  */
 const CarritoContext = createContext(null);
 
-export const CarritoProvider = ({ children }) => {
-  const { isAuthenticated, listo, getToken, login } = useAuth();
+const VACIO = { items: [], total: 0 };
 
-  const [carrito, setCarrito] = useState([]);
-  const [totalPrecio, setTotalPrecio] = useState(0);
+export function CarritoProvider({ children }) {
+  const { listo, autenticado, getToken, login } = useAuth();
+  const aviso = useToast();
+  const [carrito, setCarrito] = useState(VACIO);
   const [cargando, setCargando] = useState(false);
+  const [ocupado, setOcupado] = useState(false); // una accion en curso: evita dobles clics
 
-  // Cache productoId -> nombre de archivo de imagen (para los thumbnails del carrito).
-  const imagenesRef = useRef({});
-
-  const cargarMapaImagenes = useCallback(async () => {
-    if (Object.keys(imagenesRef.current).length > 0) return;
-    try {
-      const productos = await productsAPI.getAll();
-      const mapa = {};
-      productos.forEach((p) => {
-        mapa[p.id] = p.imagenUrl;
-      });
-      imagenesRef.current = mapa;
-    } catch (error) {
-      console.error('No se pudo cargar el catalogo para las imagenes del carrito:', error);
-    }
-  }, []);
-
-  const aplicarRespuesta = useCallback((data) => {
-    const mapa = imagenesRef.current;
-    const items = (data && data.items ? data.items : []).map((it) => ({
-      id: it.id, // id del item dentro del carrito
-      productoId: it.productoId,
-      nombre: it.nombreProducto,
-      precio: Number(it.precioUnitario),
-      cantidad: it.cantidad,
-      descripcion: '',
-      imagen: resolverImagen(mapa[it.productoId]),
-    }));
-    setCarrito(items);
-    setTotalPrecio(Number(data && data.total ? data.total : 0));
+  const aplicar = useCallback((data) => {
+    setCarrito({
+      items: (data && data.items) || [],
+      total: Number((data && data.total) || 0),
+    });
   }, []);
 
   const refrescar = useCallback(async () => {
-    if (!isAuthenticated) {
-      setCarrito([]);
-      setTotalPrecio(0);
+    if (!autenticado) {
+      setCarrito(VACIO);
       return;
     }
     setCargando(true);
     try {
-      await cargarMapaImagenes();
-      const token = await getToken();
-      const data = await carritoAPI.get(token);
-      aplicarRespuesta(data);
+      aplicar(await api.carrito.ver(await getToken()));
     } catch (error) {
-      console.error('Error al cargar el carrito:', error);
+      aviso.error(error.message);
     } finally {
       setCargando(false);
     }
-  }, [isAuthenticated, getToken, cargarMapaImagenes, aplicarRespuesta]);
+  }, [autenticado, getToken, aplicar, aviso]);
 
   useEffect(() => {
     if (listo) refrescar();
-  }, [listo, isAuthenticated, refrescar]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [listo, autenticado]);
 
-  const agregarAlCarrito = useCallback(
+  // Ejecuta una accion contra el carrito con control de errores y bloqueo de doble clic.
+  const ejecutar = useCallback(
+    async (accion, mensajeExito) => {
+      if (ocupado) return null;
+      setOcupado(true);
+      try {
+        const resultado = await accion(await getToken());
+        if (mensajeExito) aviso.exito(mensajeExito);
+        return resultado || true;
+      } catch (error) {
+        aviso.error(error.message);
+        return null;
+      } finally {
+        setOcupado(false);
+      }
+    },
+    [ocupado, getToken, aviso]
+  );
+
+  const agregar = useCallback(
     async (producto, cantidad = 1) => {
-      if (!isAuthenticated) {
-        alert('Inicia sesion con Microsoft para usar el carrito.');
+      if (!autenticado) {
+        aviso.info('Inicia sesion para usar el carrito');
         login();
         return;
       }
-      try {
-        const token = await getToken();
-        const data = await carritoAPI.addItem(token, producto.id, cantidad);
-        aplicarRespuesta(data);
-      } catch (error) {
-        alert('No se pudo agregar al carrito: ' + error.message);
-      }
+      const data = await ejecutar(
+        (t) => api.carrito.agregar(t, producto.id, cantidad),
+        `${producto.nombre} agregado al carrito`
+      );
+      if (data && data !== true) aplicar(data);
     },
-    [isAuthenticated, getToken, login, aplicarRespuesta]
+    [autenticado, login, ejecutar, aplicar, aviso]
   );
 
   const cambiarCantidad = useCallback(
-    async (index, delta) => {
-      const item = carrito[index];
-      if (!item) return;
-      const nuevaCantidad = Math.max(1, item.cantidad + delta);
-      try {
-        const token = await getToken();
-        const data = await carritoAPI.updateItem(token, item.id, nuevaCantidad);
-        aplicarRespuesta(data);
-      } catch (error) {
-        alert('No se pudo actualizar la cantidad: ' + error.message);
-      }
+    async (item, cantidad) => {
+      if (cantidad < 1) return;
+      const data = await ejecutar((t) => api.carrito.cambiarCantidad(t, item.id, cantidad));
+      if (data && data !== true) aplicar(data);
     },
-    [carrito, getToken, aplicarRespuesta]
+    [ejecutar, aplicar]
   );
 
-  const eliminarDelCarrito = useCallback(
-    async (index) => {
-      const item = carrito[index];
-      if (!item) return;
-      try {
-        const token = await getToken();
-        const data = await carritoAPI.removeItem(token, item.id);
-        aplicarRespuesta(data);
-      } catch (error) {
-        alert('No se pudo eliminar el producto: ' + error.message);
-      }
+  const quitar = useCallback(
+    async (item) => {
+      const data = await ejecutar((t) => api.carrito.quitar(t, item.id), 'Producto quitado');
+      if (data && data !== true) aplicar(data);
     },
-    [carrito, getToken, aplicarRespuesta]
+    [ejecutar, aplicar]
   );
 
-  const limpiarCarrito = useCallback(async () => {
-    if (!isAuthenticated) return;
-    try {
-      const token = await getToken();
-      await carritoAPI.vaciar(token);
-      setCarrito([]);
-      setTotalPrecio(0);
-    } catch (error) {
-      console.error('Error al vaciar el carrito:', error);
-    }
-  }, [isAuthenticated, getToken]);
+  const vaciar = useCallback(async () => {
+    const ok = await ejecutar((t) => api.carrito.vaciar(t), 'Carrito vaciado');
+    if (ok) setCarrito(VACIO);
+  }, [ejecutar]);
 
-  const checkout = useCallback(async () => {
-    const token = await getToken();
-    const pedido = await carritoAPI.checkout(token);
-    setCarrito([]);
-    setTotalPrecio(0);
-    return pedido;
-  }, [getToken]);
+  // Devuelve el pedido creado (o null si fallo).
+  const confirmar = useCallback(async (email) => {
+    const pedido = await ejecutar((t) => api.carrito.confirmar(t, email));
+    if (pedido && pedido !== true) setCarrito(VACIO);
+    return pedido && pedido !== true ? pedido : null;
+  }, [ejecutar]);
 
-  const totalProductos = carrito.reduce((suma, p) => suma + (p.cantidad || 0), 0);
+  const valor = useMemo(
+    () => ({
+      items: carrito.items,
+      total: carrito.total,
+      cantidad: carrito.items.reduce((s, i) => s + (i.cantidad || 0), 0),
+      cargando,
+      ocupado,
+      agregar,
+      cambiarCantidad,
+      quitar,
+      vaciar,
+      confirmar,
+      refrescar,
+    }),
+    [carrito, cargando, ocupado, agregar, cambiarCantidad, quitar, vaciar, confirmar, refrescar]
+  );
 
-  const value = {
-    carrito,
-    totalProductos,
-    totalPrecio,
-    cargando,
-    agregarAlCarrito,
-    eliminarDelCarrito,
-    cambiarCantidad,
-    limpiarCarrito,
-    checkout,
-    refrescar,
-  };
+  return <CarritoContext.Provider value={valor}>{children}</CarritoContext.Provider>;
+}
 
-  return <CarritoContext.Provider value={value}>{children}</CarritoContext.Provider>;
-};
-
-export const useCarrito = () => {
+export function useCarrito() {
   const contexto = useContext(CarritoContext);
-  if (!contexto) {
-    throw new Error('useCarrito debe ser usado dentro de CarritoProvider');
-  }
+  if (!contexto) throw new Error('useCarrito debe usarse dentro de <CarritoProvider>');
   return contexto;
-};
+}

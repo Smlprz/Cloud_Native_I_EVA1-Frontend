@@ -1,17 +1,19 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
+import './styles.css';
 import App from './App';
-import { AuthProvider } from './context/AuthContext';
-import reportWebVitals from './reportWebVitals';
+import { AuthProvider } from './auth/AuthContext';
+import { ToastProvider } from './context/ToastContext';
+import { CarritoProvider } from './context/CarritoContext';
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
+ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <AuthProvider>
-      <App />
-    </AuthProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <CarritoProvider>
+          <App />
+        </CarritoProvider>
+      </AuthProvider>
+    </ToastProvider>
   </React.StrictMode>
 );
-
-reportWebVitals();

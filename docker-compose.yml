@@ -1,0 +1,17 @@
+# Frontend en una EC2 con Docker.
+#   docker compose up -d --build
+# Las variables se leen del archivo .env de esta carpeta (se incorporan al compilar).
+services:
+  frontend:
+    build:
+      context: .
+      args:
+        REACT_APP_API_BASE: ${REACT_APP_API_BASE}
+        REACT_APP_AZURE_TENANT_ID: ${REACT_APP_AZURE_TENANT_ID}
+        REACT_APP_AZURE_CLIENT_ID: ${REACT_APP_AZURE_CLIENT_ID}
+        REACT_APP_AZURE_API_SCOPES: ${REACT_APP_AZURE_API_SCOPES:-}
+        REACT_APP_RABBIT_PANEL_URL: ${REACT_APP_RABBIT_PANEL_URL:-}
+    container_name: pedidos360-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
