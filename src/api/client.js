@@ -12,7 +12,7 @@ export class ApiError extends Error {
 function mensajeAmigable(status, detalle) {
   const base =
     {
-      0: 'No se pudo conectar con el servidor',
+      0: 'No se pudo conectar con el servidor. Revisa tu conexion; si persiste, puede faltar la ruta en el gateway o estar bloqueada por CORS',
       400: 'Los datos enviados no son validos',
       401: 'Tu sesion expiro. Vuelve a iniciar sesion',
       403: 'No tienes permiso para esta accion',
