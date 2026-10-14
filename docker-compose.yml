@@ -1,6 +1,10 @@
-# Frontend en una EC2 con Docker.
-#   docker compose up -d --build
-# Las variables se leen del archivo .env de esta carpeta (se incorporan al compilar).
+# Frontend en una EC2 con Docker (HTTPS automatico con Caddy).
+#
+#   SITE_ADDRESS=<ip-con-guiones>.sslip.io sudo -E docker compose up -d --build
+#
+# Ejemplo: la IP publica 34.200.1.1 -> SITE_ADDRESS=34-200-1-1.sslip.io
+# Puertos 80 y 443 abiertos en el grupo de seguridad. Sin SITE_ADDRESS sirve HTTP en el puerto 80.
+# Las variables REACT_APP_* se leen del archivo .env de esta carpeta (se incorporan al compilar).
 services:
   frontend:
     build:
@@ -13,5 +17,13 @@ services:
         REACT_APP_RABBIT_PANEL_URL: ${REACT_APP_RABBIT_PANEL_URL:-}
     container_name: pedidos360-frontend
     restart: unless-stopped
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
     ports:
       - "80:80"
+      - "443:443"
+    volumes:
+      - caddy_data:/data   # conserva los certificados entre reinicios
+
+volumes:
+  caddy_data:

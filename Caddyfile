@@ -1,0 +1,30 @@
+# Servidor web del frontend con HTTPS automatico.
+#   SITE_ADDRESS=:80                       -> HTTP simple (pruebas locales)
+#   SITE_ADDRESS=34-200-1-1.sslip.io       -> HTTPS con certificado Let's Encrypt automatico
+#                                             (el nombre apunta a la IP 34.200.1.1; los puertos 80 y 443 deben estar abiertos)
+{
+	admin off
+}
+
+{$SITE_ADDRESS::80} {
+	root * /usr/share/caddy
+	encode gzip
+
+	# Archivos con hash en el nombre: cache largo
+	handle /static/* {
+		header Cache-Control "public, max-age=31536000, immutable"
+		file_server
+	}
+
+	# Las rutas de React (/productos, /carrito...) devuelven index.html al recargar
+	handle {
+		header Cache-Control "no-cache"
+		try_files {path} /index.html
+		file_server
+	}
+}
+
+# Solo para la comprobacion de salud del contenedor (no se publica)
+http://127.0.0.1:8099 {
+	respond /healthz "ok" 200
+}
