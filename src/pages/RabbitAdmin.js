@@ -5,8 +5,14 @@ import { useToast } from '../context/ToastContext';
 import RequireAuth from '../auth/RequireAuth';
 import { RABBIT_PANEL_URL } from '../config';
 
-// Colas y exchanges del flujo real de ordenes: borrarlos corta los correos de confirmacion.
-const PROTEGIDOS = ['orden.creada', 'orden.creada.dlq', 'pedidos.exchange', 'pedidos.dlx'];
+// Colas y exchanges del flujo real de ordenes e inventario: borrarlos corta los correos de
+// confirmacion, el descuento de stock y las alertas de stock bajo.
+const PROTEGIDOS = [
+  'orden.creada', 'orden.creada.dlq',
+  'stock.descontar', 'stock.descontar.dlq',
+  'stock.bajo', 'stock.bajo.dlq',
+  'pedidos.exchange', 'pedidos.eventos', 'pedidos.dlx',
+];
 
 function Tarjeta({ titulo, ayuda, children }) {
   return (

@@ -7,14 +7,20 @@ import { useCarrito } from '../context/CarritoContext';
 import { useToast } from '../context/ToastContext';
 import Estado from '../components/Estado';
 import Resenas from '../components/Resenas';
+import Recomendaciones from '../components/Recomendaciones';
 import { PLACEHOLDER, resolverImagen } from '../utils/imagenes';
 import { precio } from '../utils/formato';
 
 export default function ProductDetail() {
   const { id } = useParams();
-  const { datos: producto, cargando, error, recargar } = useCargar(() => api.productos.obtener(id), [id]);
+  const { autenticado, getToken } = useAuth();
+  // Con sesion se envia el token: el catalogo es publico, pero asi el backend registra QUIEN vio el producto
+  // (evento de navegacion en Kafka) y puede recomendarle productos parecidos.
+  const { datos: producto, cargando, error, recargar } = useCargar(
+    async () => api.productos.obtener(id, autenticado ? await getToken().catch(() => undefined) : undefined),
+    [id, autenticado]
+  );
   const { agregar, ocupado } = useCarrito();
-  const { autenticado } = useAuth();
   const aviso = useToast();
   const [cantidad, setCantidad] = useState(1);
 
@@ -72,6 +78,8 @@ export default function ProductDetail() {
           </button>
         </div>
       </div>
+
+      <Recomendaciones productoId={producto.id} />
 
       <Resenas productoId={producto.id} autenticado={autenticado} />
     </section>

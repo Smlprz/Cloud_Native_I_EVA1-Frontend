@@ -10,6 +10,13 @@
 	root * /usr/share/caddy
 	encode gzip
 
+	# WebSocket de las metricas en tiempo real (dashboard del ADMIN): el API Gateway HTTP no soporta WebSockets,
+	# asi que se reenvia desde aqui al microservicio de analitica (ANALYTICS_UPSTREAM=<ip-privada>:8089).
+	# El navegador usa wss://<este-sitio>/ws/metricas, con el mismo certificado HTTPS.
+	handle /ws/* {
+		reverse_proxy {$ANALYTICS_UPSTREAM:127.0.0.1:9}
+	}
+
 	# Archivos con hash en el nombre: cache largo
 	handle /static/* {
 		header Cache-Control "public, max-age=31536000, immutable"

@@ -99,4 +99,45 @@ describe('cliente de API', () => {
     await api.productos.listar({ nombre: 'collar rojo', categoria: '' });
     expect(global.fetch.mock.calls[0][0]).toMatch(/\/productos\?nombre=collar%20rojo$/);
   });
+
+  test('ver el detalle de un producto con sesion envia el token (para saber quien lo vio); sin sesion no', async () => {
+    global.fetch.mockResolvedValue(respuesta(200, { id: 1 }));
+
+    await api.productos.obtener(1, 'tok');
+    expect(global.fetch.mock.calls[0][1].headers.Authorization).toBe('Bearer tok');
+
+    await api.productos.obtener(1);
+    expect(global.fetch.mock.calls[1][1].headers.Authorization).toBeUndefined();
+  });
+
+  test('pagar envia los datos de la tarjeta a /pagos', async () => {
+    global.fetch.mockResolvedValue(respuesta(201, { id: 3, estado: 'APROBADO' }));
+    const datos = { ordenId: 7, numeroTarjeta: '4111 1111 1111 1111', titular: 'Ana', vencimiento: '12/30', cvv: '123' };
+
+    await api.pagos.pagar('t', datos);
+
+    const [url, opciones] = global.fetch.mock.calls[0];
+    expect(url).toMatch(/\/pagos$/);
+    expect(opciones.method).toBe('POST');
+    expect(JSON.parse(opciones.body)).toEqual(datos);
+  });
+
+  test('un pago rechazado (402) y uno bloqueado por fraude (429) conservan el motivo del backend', async () => {
+    global.fetch.mockResolvedValue(respuesta(402, { detail: 'Fondos insuficientes' }));
+    const rechazado = await api.pagos.pagar('t', {}).catch((e) => e);
+    expect(rechazado).toBeInstanceOf(ApiError);
+    expect(rechazado.status).toBe(402);
+    expect(rechazado.detalle).toBe('Fondos insuficientes');
+
+    global.fetch.mockResolvedValue(respuesta(429, { detail: 'bloqueada por seguridad' }));
+    const bloqueado = await api.pagos.pagar('t', {}).catch((e) => e);
+    expect(bloqueado.status).toBe(429);
+    expect(bloqueado.detalle).toBe('bloqueada por seguridad');
+  });
+
+  test('las recomendaciones piden el producto que se esta mirando', async () => {
+    global.fetch.mockResolvedValue(respuesta(200, []));
+    await api.analytics.recomendaciones('t', { productoId: 9 });
+    expect(global.fetch.mock.calls[0][0]).toMatch(/\/analytics\/recomendaciones\?productoId=9$/);
+  });
 });
