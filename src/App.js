@@ -14,6 +14,7 @@ import NotFound from './pages/NotFound';
 const Orders = lazy(() => import('./pages/Orders'));
 const ProductAdmin = lazy(() => import('./pages/ProductAdmin'));
 const RabbitAdmin = lazy(() => import('./pages/RabbitAdmin'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
 
 function ScrollArriba() {
   const { pathname } = useLocation();
@@ -39,6 +40,7 @@ export default function App() {
               <Route path="/pedidos" element={<Orders />} />
               <Route path="/gestion" element={<ProductAdmin />} />
               <Route path="/rabbit" element={<RabbitAdmin />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

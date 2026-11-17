@@ -1,10 +1,12 @@
 import { API_BASE, API_TIMEOUT_MS } from '../config';
 
 export class ApiError extends Error {
-  constructor(status, message) {
+  // detalle: el motivo exacto que informo el backend (por ejemplo "Fondos insuficientes").
+  constructor(status, message, detalle = '') {
     super(message);
     this.name = 'ApiError';
     this.status = status;
+    this.detalle = detalle;
   }
 }
 
@@ -15,6 +17,7 @@ function mensajeAmigable(status, detalle) {
       0: 'No se pudo conectar con el servidor. Revisa tu conexion; si persiste, puede faltar la ruta en el gateway o estar bloqueada por CORS',
       400: 'Los datos enviados no son validos',
       401: 'Tu sesion expiro. Vuelve a iniciar sesion',
+      402: 'El pago fue rechazado',
       403: 'No tienes permiso para esta accion',
       404: 'No se encontro lo que buscas',
       409: 'La operacion entra en conflicto con el estado actual',
@@ -71,7 +74,7 @@ async function request(path, { method = 'GET', token, body } = {}) {
     } catch (e) {
       /* respuesta sin cuerpo JSON */
     }
-    throw new ApiError(respuesta.status, mensajeAmigable(respuesta.status, detalle));
+    throw new ApiError(respuesta.status, mensajeAmigable(respuesta.status, detalle), detalle);
   }
 
   if (respuesta.status === 204) return null;
@@ -89,7 +92,9 @@ const q = (params) => {
 // ---------------------------------------------------------------- Productos
 export const productos = {
   listar: ({ categoria, nombre } = {}) => request(`/productos${q({ categoria, nombre })}`),
-  obtener: (id) => request(`/productos/${id}`),
+  // token (opcional): el catalogo es publico, pero con sesion el backend sabe QUIEN vio el producto
+  // y puede armar sus recomendaciones (evento de navegacion en Kafka).
+  obtener: (id, token) => request(`/productos/${id}`, { token }),
   crear: (token, producto) => request('/productos', { method: 'POST', token, body: producto }),
   actualizar: (token, id, producto) =>
     request(`/productos/${id}`, { method: 'PUT', token, body: producto }),
@@ -123,6 +128,23 @@ export const resenas = {
   eliminar: (token, id) => request(`/resenas/${id}`, { method: 'DELETE', token }),
 };
 
+// -------------------------------------------------------------------- Pagos
+export const pagos = {
+  // datos: { ordenId, numeroTarjeta, titular, vencimiento (MM/AA), cvv }. El monto sale de la orden.
+  pagar: (token, datos) => request('/pagos', { method: 'POST', token, body: datos }),
+  listar: (token, ordenId) => request(`/pagos${q({ ordenId })}`, { token }),
+};
+
+// ------------------------------------------------------ Analitica (Kafka)
+export const analytics = {
+  // Productos parecidos a los que el usuario ha consultado. productoId: el que esta mirando (opcional).
+  recomendaciones: (token, { productoId, limite } = {}) =>
+    request(`/analytics/recomendaciones${q({ productoId, limite })}`, { token }),
+  perfil: (token) => request('/analytics/perfil', { token }),
+  // Foto de las metricas (solo ADMIN). En tiempo real llegan ademas por WebSocket.
+  metricas: (token) => request('/analytics/metricas', { token }),
+};
+
 // ----------------------------------------------------------------- Identidad
 export const auth = {
   perfil: (token) => request('/auth/me', { token }),
@@ -144,5 +166,5 @@ export const rabbit = {
     request('/rabbit/bindings', { method: 'DELETE', token, body: datos }),
 };
 
-const api = { productos, carrito, ordenes, resenas, auth, rabbit };
+const api = { productos, carrito, ordenes, resenas, pagos, analytics, auth, rabbit };
 export default api;

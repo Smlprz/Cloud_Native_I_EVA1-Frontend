@@ -34,5 +34,17 @@ export const SCOPES = (env.REACT_APP_AZURE_API_SCOPES || '').split(/\s+/).filter
 // Panel web propio de RabbitMQ (opcional). Ejemplo: http://<ip-rabbit>:15672
 export const RABBIT_PANEL_URL = env.REACT_APP_RABBIT_PANEL_URL || '';
 
+// Panel web de Kafka-UI (opcional). Ejemplo: http://<ip-kafka>:8090
+export const KAFKA_UI_URL = env.REACT_APP_KAFKA_UI_URL || '';
+
+// WebSocket de las metricas en tiempo real (dashboard del ADMIN). Por defecto usa el mismo sitio de la pagina
+// (wss://<sitio>/ws/metricas): el Caddy del frontend lo reenvia al servicio de analitica. En desarrollo local:
+//   REACT_APP_WS_URL=ws://localhost:8089/ws/metricas
+export const wsMetricasUrl = () => {
+  if (env.REACT_APP_WS_URL) return env.REACT_APP_WS_URL;
+  const protocolo = window.location.protocol === 'https:' ? 'wss' : 'ws';
+  return `${protocolo}://${window.location.host}/ws/metricas`;
+};
+
 // Tiempo maximo de espera por llamada al backend.
 export const API_TIMEOUT_MS = 20000;
