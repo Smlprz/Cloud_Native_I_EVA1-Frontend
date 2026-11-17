@@ -103,8 +103,8 @@ export function CarritoProvider({ children }) {
   }, [ejecutar]);
 
   // Devuelve el pedido creado (o null si fallo).
-  const confirmar = useCallback(async (email) => {
-    const pedido = await ejecutar((t) => api.carrito.confirmar(t, email));
+  const confirmar = useCallback(async (email, cupon) => {
+    const pedido = await ejecutar((t) => api.carrito.confirmar(t, email, cupon));
     if (pedido && pedido !== true) setCarrito(VACIO);
     return pedido && pedido !== true ? pedido : null;
   }, [ejecutar]);

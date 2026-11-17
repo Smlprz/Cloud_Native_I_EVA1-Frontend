@@ -110,9 +110,11 @@ export const carrito = {
     request(`/carrito/items/${itemId}`, { method: 'PUT', token, body: { cantidad } }),
   quitar: (token, itemId) => request(`/carrito/items/${itemId}`, { method: 'DELETE', token }),
   vaciar: (token) => request('/carrito', { method: 'DELETE', token }),
-  // email (opcional): direccion a la que se envia el comprobante de la compra.
-  confirmar: (token, email) =>
-    request('/carrito/checkout', { method: 'POST', token, body: email ? { email } : undefined }),
+  // email (opcional): direccion a la que se envia el comprobante. cupon (opcional): codigo de un cupon de descuento.
+  confirmar: (token, email, cupon) => {
+    const body = { ...(email ? { email } : {}), ...(cupon ? { cupon } : {}) };
+    return request('/carrito/checkout', { method: 'POST', token, body: Object.keys(body).length ? body : undefined });
+  },
   pedidos: (token) => request('/carrito/pedidos', { token }),
 };
 
@@ -126,6 +128,17 @@ export const resenas = {
   listar: (token, productoId) => request(`/resenas${q({ productoId })}`, { token }),
   crear: (token, resena) => request('/resenas', { method: 'POST', token, body: resena }),
   eliminar: (token, id) => request(`/resenas/${id}`, { method: 'DELETE', token }),
+};
+
+// ------------------------------------------------------------------ Cupones
+export const cupones = {
+  // Calcula el descuento sin consumir el cupon. datos: { codigo, monto }
+  validar: (token, datos) => request('/cupones/validar', { method: 'POST', token, body: datos }),
+  // Solo ADMIN
+  listar: (token) => request('/cupones', { token }),
+  crear: (token, datos) => request('/cupones', { method: 'POST', token, body: datos }),
+  activar: (token, id, activo) =>
+    request(`/cupones/${id}/activo`, { method: 'PUT', token, body: { activo } }),
 };
 
 // -------------------------------------------------------------------- Pagos
@@ -166,5 +179,5 @@ export const rabbit = {
     request('/rabbit/bindings', { method: 'DELETE', token, body: datos }),
 };
 
-const api = { productos, carrito, ordenes, resenas, pagos, analytics, auth, rabbit };
+const api = { productos, carrito, ordenes, resenas, cupones, pagos, analytics, auth, rabbit };
 export default api;

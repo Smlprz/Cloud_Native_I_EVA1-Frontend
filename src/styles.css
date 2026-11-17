@@ -130,7 +130,6 @@ label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.9rem; 
 .comprobante { display: grid; gap: 0.3rem; max-width: 420px; margin-bottom: 1rem; }
 .comprobante .texto-error { font-size: 0.85rem; }
 .carrito-resumen { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; background: var(--blanco); border: 1px solid var(--borde); border-radius: var(--radio); padding: 1rem; }
-.carrito-total { display: flex; flex-direction: column; align-items: flex-end; }
 .carrito-total strong { font-size: 1.4rem; color: var(--azul); }
 .confirmacion { text-align: center; background: var(--blanco); border: 1px solid var(--borde); border-radius: var(--radio); padding: 2rem 1rem; }
 .acciones { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem; }
@@ -219,3 +218,9 @@ label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.9rem; 
 .barras-texto { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .barras-pista { background: #eef1f4; border-radius: 999px; height: 0.7rem; overflow: hidden; }
 .barras-relleno { display: block; height: 100%; background: var(--naranja); border-radius: 999px; transition: width 0.4s ease; }
+
+/* ===== Cupones (ms-cupones) ===== */
+.cupon { display: flex; flex-direction: column; gap: 0.35rem; margin: 1rem 0; }
+.cupon .linea { display: flex; gap: 0.5rem; }
+.cupon .linea input { flex: 1; text-transform: uppercase; }
+.cupon-aplicado { flex-direction: row; align-items: center; justify-content: space-between; gap: 1rem; background: #e3f5ea; border: 1px solid var(--verde); color: #1e6d3f; border-radius: var(--radio); padding: 0.6rem 0.9rem; }

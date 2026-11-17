@@ -21,6 +21,7 @@ export default function Header() {
         {autenticado && <NavLink to="/pedidos">Mis pedidos</NavLink>}
         {tieneRol('VENDEDOR', 'ADMIN') && <NavLink to="/gestion">Gestion</NavLink>}
         {tieneRol('ADMIN') && <NavLink to="/rabbit">RabbitMQ</NavLink>}
+        {tieneRol('ADMIN') && <NavLink to="/cupones">Cupones</NavLink>}
         {tieneRol('ADMIN') && <NavLink to="/dashboard">Dashboard</NavLink>}
       </nav>
 

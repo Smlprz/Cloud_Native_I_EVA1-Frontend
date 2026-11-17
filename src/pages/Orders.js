@@ -83,7 +83,12 @@ function OrdersContent() {
                   <td>{p.id}</td>
                   <td>{fecha(p.creadoEn)}</td>
                   <td><span className="etiqueta">{p.estado}</span></td>
-                  <td>{precio(p.total)}</td>
+                  <td>
+                    {precio(p.total)}
+                    {Number(p.descuento) > 0 && (
+                      <small className="texto-suave"> (cupon {p.cuponCodigo}: -{precio(p.descuento)})</small>
+                    )}
+                  </td>
                   {esOrdenes && (
                     <td>
                       {estaPagada(p.id) ? (

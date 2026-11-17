@@ -7,9 +7,10 @@ Tienda de mascotas en **React**. Inicia sesión con **Microsoft Entra ID (Azure 
 | Ruta | Quién | Qué hace |
 |---|---|---|
 | `/`, `/productos`, `/productos/:id` | todos | Catálogo (público). Con sesión, el detalle del producto envía el token para que el backend registre **quién lo vio** (evento de navegación en Kafka) y muestra **"Recomendados para ti"** (`ms-analytics-recommendations`) y las reseñas |
-| `/carrito` | con sesión | Carrito y checkout (`ms-carrito` → `ms-orden`) |
+| `/carrito` | con sesión | Carrito y checkout (`ms-carrito` → `ms-orden`). Con un **cupón de descuento** (`ms-cupones`): *Aplicar* muestra el descuento sin consumirlo y al confirmar el total baja |
 | `/pedidos` | con sesión | Pedidos y órdenes registradas. En **Órdenes registradas** cada orden se puede **pagar** (`ms-pago`): tarjeta de prueba `4111 1111 1111 1111`; una terminada en `0002` simula fondos insuficientes; la misma tarjeta más de 3 veces en 10 s la **bloquea el antifraude** |
 | `/gestion` | VENDEDOR / ADMIN | Alta, edición y baja de productos |
+| `/cupones` | ADMIN | Crear cupones (porcentaje o monto fijo, compra mínima, vencimiento, usos máximos) y activarlos/desactivarlos |
 | `/rabbit` | ADMIN | Administración de RabbitMQ (colas, exchanges, bindings) |
 | `/dashboard` | ADMIN | **Métricas en tiempo real** (clics, usuarios activos, productos más vistos, pagos, alertas de fraude) recibidas por **WebSocket** desde Kafka |
 
