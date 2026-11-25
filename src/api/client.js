@@ -146,6 +146,10 @@ export const pagos = {
   // datos: { ordenId, numeroTarjeta, titular, vencimiento (MM/AA), cvv }. El monto sale de la orden.
   pagar: (token, datos) => request('/pagos', { method: 'POST', token, body: datos }),
   listar: (token, ordenId) => request(`/pagos${q({ ordenId })}`, { token }),
+  // Webpay: iniciar devuelve { url, token }; al volver se confirma (o se anula) con ese token.
+  webpayIniciar: (token, ordenId) => request('/pagos/webpay/iniciar', { method: 'POST', token, body: { ordenId } }),
+  webpayConfirmar: (token, tbk) => request('/pagos/webpay/confirmar', { method: 'POST', token, body: { token: tbk } }),
+  webpayAnular: (token, tbk) => request('/pagos/webpay/anular', { method: 'POST', token, body: { token: tbk } }),
 };
 
 // ------------------------------------------------------ Analitica (Kafka)
