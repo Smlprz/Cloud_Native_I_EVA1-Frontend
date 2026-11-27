@@ -21,3 +21,6 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Variables locales (cada entorno tiene la suya; plantilla en .env.example)
+.env
