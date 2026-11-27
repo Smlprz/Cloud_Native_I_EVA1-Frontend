@@ -12,7 +12,7 @@ const VACIO = { numeroTarjeta: '', titular: '', vencimiento: '', cvv: '' };
  * tarjeta. El numero y el CVV viajan al backend y no se guardan: el servidor conserva solo los ultimos 4 digitos.
  *
  * Resultados: aprobado (201), rechazado (402: tarjeta invalida, vencida, sin fondos) y bloqueado por el
- * antifraude (429: mas de 3 compras del mismo usuario en 1 minuto bloquean 15 minutos).
+ * antifraude (429: la misma tarjeta mas de 3 veces en 10 segundos).
  */
 export default function PagoForm({ orden, onPagado, onCerrar }) {
   const { getToken } = useAuth();
@@ -100,7 +100,7 @@ export default function PagoForm({ orden, onPagado, onCerrar }) {
       </div>
       <p className="texto-suave">
         Pago simulado. Tarjeta de prueba aprobada: 4111 1111 1111 1111. Una tarjeta terminada en 0002 simula fondos
-        insuficientes. Si haces mas de 3 compras en 1 minuto, el antifraude te bloquea por 15 minutos.
+        insuficientes. Si la misma tarjeta se usa mas de 3 veces en 10 segundos, el antifraude bloquea la transaccion.
       </p>
 
       {resultado && (

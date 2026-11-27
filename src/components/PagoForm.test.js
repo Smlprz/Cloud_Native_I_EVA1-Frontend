@@ -53,13 +53,13 @@ describe('PagoForm', () => {
   });
 
   test('el antifraude (429) se muestra como transaccion bloqueada', async () => {
-    api.pagos.pagar.mockRejectedValue(new ApiError(429, 'Demasiadas solicitudes', 'Mas de 3 intentos de compra en 60 segundos: usuario bloqueado por seguridad hasta las 12:15'));
+    api.pagos.pagar.mockRejectedValue(new ApiError(429, 'Demasiadas solicitudes', 'La misma tarjeta se uso 4 veces en 10 segundos'));
     render(<PagoForm orden={orden} onPagado={jest.fn()} onCerrar={jest.fn()} />);
 
     llenar();
     fireEvent.click(screen.getByRole('button', { name: /^pagar$/i }));
 
     expect(await screen.findByText(/bloqueada por seguridad/i)).toBeInTheDocument();
-    expect(screen.getByText(/bloqueado por seguridad hasta las 12:15/i)).toBeInTheDocument();
+    expect(screen.getByText(/se uso 4 veces/i)).toBeInTheDocument();
   });
 });
