@@ -56,6 +56,12 @@ export default function ProductDetail() {
         <div className="detalle-info">
           {producto.categoria && <span className="etiqueta">{producto.categoria}</span>}
           <h1>{producto.nombre}</h1>
+          {producto.resenasCantidad > 0 && (
+            <p className="texto-suave">
+              ★ {Number(producto.calificacionPromedio).toFixed(1)} ({producto.resenasCantidad}{' '}
+              {producto.resenasCantidad === 1 ? 'resena' : 'resenas'})
+            </p>
+          )}
           <p className="detalle-precio">{precio(producto.precio)}</p>
           <p>{producto.descripcion || 'Sin descripcion.'}</p>
           <p className={sinStock ? 'texto-error' : 'texto-suave'}>

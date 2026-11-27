@@ -140,4 +140,38 @@ describe('cliente de API', () => {
     await api.analytics.recomendaciones('t', { productoId: 9 });
     expect(global.fetch.mock.calls[0][0]).toMatch(/\/analytics\/recomendaciones\?productoId=9$/);
   });
+
+  test('confirmar envia el cupon junto con el correo, y solo lo que se indico', async () => {
+    global.fetch.mockResolvedValue(respuesta(201, { id: 5 }));
+
+    await api.carrito.confirmar('t', 'a@b.cl', 'VERANO10');
+    expect(JSON.parse(global.fetch.mock.calls[0][1].body)).toEqual({ email: 'a@b.cl', cupon: 'VERANO10' });
+
+    await api.carrito.confirmar('t', 'a@b.cl');
+    expect(JSON.parse(global.fetch.mock.calls[1][1].body)).toEqual({ email: 'a@b.cl' });
+
+    await api.carrito.confirmar('t');
+    expect(global.fetch.mock.calls[2][1].body).toBeUndefined();
+  });
+
+  test('validar un cupon envia codigo y monto; un cupon vencido deja el motivo del backend', async () => {
+    global.fetch.mockResolvedValue(respuesta(200, { codigo: 'VERANO10', descuento: 100, total: 900 }));
+    await api.cupones.validar('t', { codigo: 'VERANO10', monto: 1000 });
+    const [url, opciones] = global.fetch.mock.calls[0];
+    expect(url.endsWith('/cupones/validar')).toBe(true);
+    expect(JSON.parse(opciones.body)).toEqual({ codigo: 'VERANO10', monto: 1000 });
+
+    global.fetch.mockResolvedValue(respuesta(400, { detail: 'El cupon esta vencido' }));
+    const error = await api.cupones.validar('t', { codigo: 'OLD', monto: 1000 }).catch((e) => e);
+    expect(error.detalle).toBe('El cupon esta vencido');
+  });
+
+  test('activar o desactivar un cupon usa PUT /cupones/{id}/activo', async () => {
+    global.fetch.mockResolvedValue(respuesta(200, { id: 4, activo: false }));
+    await api.cupones.activar('t', 4, false);
+    const [url, opciones] = global.fetch.mock.calls[0];
+    expect(url.endsWith('/cupones/4/activo')).toBe(true);
+    expect(opciones.method).toBe('PUT');
+    expect(JSON.parse(opciones.body)).toEqual({ activo: false });
+  });
 });

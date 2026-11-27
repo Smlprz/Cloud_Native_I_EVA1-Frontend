@@ -3,6 +3,7 @@ import api, { ApiError } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { precio } from '../utils/formato';
+import { irAWebpay } from '../utils/webpay';
 
 const VACIO = { numeroTarjeta: '', titular: '', vencimiento: '', cvv: '' };
 
@@ -21,6 +22,25 @@ export default function PagoForm({ orden, onPagado, onCerrar }) {
   const [resultado, setResultado] = useState(null);
 
   const cambiar = (campo) => (e) => setDatos({ ...datos, [campo]: e.target.value });
+
+  // Webpay: la tarjeta se escribe en el sitio de Transbank; el antifraude cuenta los intentos por usuario.
+  const pagarConWebpay = async () => {
+    if (enviando) return;
+    setEnviando(true);
+    setResultado(null);
+    try {
+      const token = await getToken();
+      irAWebpay(await api.pagos.webpayIniciar(token, orden.id));
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 429) {
+        setResultado({ tipo: 'fraude', titulo: 'Transaccion bloqueada por seguridad', texto: error.detalle });
+      } else {
+        setResultado({ tipo: 'rechazado', titulo: 'No se pudo iniciar Webpay', texto: error.detalle || error.message });
+      }
+    } finally {
+      setEnviando(false);
+    }
+  };
 
   const pagar = async (e) => {
     e.preventDefault();
@@ -50,6 +70,12 @@ export default function PagoForm({ orden, onPagado, onCerrar }) {
   return (
     <form className="pago-form" onSubmit={pagar} autoComplete="off">
       <h3>Pagar la orden N° {orden.id} por {precio(orden.total)}</h3>
+      <div className="linea">
+        <button type="button" className="btn" onClick={pagarConWebpay} disabled={enviando}>
+          Pagar con Webpay
+        </button>
+        <span className="texto-suave">o con tarjeta (pago simulado):</span>
+      </div>
       <div className="formulario-grilla">
         <label className="campo-ancho">
           Numero de tarjeta

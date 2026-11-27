@@ -6,6 +6,7 @@ import { useCarrito } from '../context/CarritoContext';
 import RequireAuth from '../auth/RequireAuth';
 import { useAuth } from '../auth/AuthContext';
 import Estado from '../components/Estado';
+import CuponCarrito from '../components/CuponCarrito';
 import { PLACEHOLDER, resolverImagen } from '../utils/imagenes';
 import { precio } from '../utils/formato';
 
@@ -15,6 +16,8 @@ function CartContent() {
   const [pedido, setPedido] = useState(null);
   const { email: emailCuenta } = useAuth();
   const [correo, setCorreo] = useState(null); // null = aun no editado: se usa el de la cuenta
+  const [cupon, setCupon] = useState(null); // descuento consultado en ms-cupones (aun no consumido)
+  const cuponVigente = cupon && cupon.montoBase === Number(total) ? cupon : null;
   const navegar = useNavigate();
   const destino = (correo === null ? emailCuenta : correo).trim();
   const correoValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(destino);
@@ -25,7 +28,7 @@ function CartContent() {
   });
 
   const finalizar = async () => {
-    const creado = await confirmar(destino);
+    const creado = await confirmar(destino, cuponVigente ? cuponVigente.codigo : undefined);
     if (creado) setPedido({ ...creado, enviadoA: destino });
   };
 
@@ -34,6 +37,9 @@ function CartContent() {
       <div className="confirmacion">
         <h1>Compra confirmada</h1>
         <p>Pedido N° <strong>{pedido.id}</strong> por <strong>{precio(pedido.total)}</strong>.</p>
+        {Number(pedido.descuento) > 0 && (
+          <p className="texto-suave">Cupon <strong>{pedido.cuponCodigo}</strong>: ahorraste <strong>{precio(pedido.descuento)}</strong>.</p>
+        )}
         <p className="texto-suave">Enviaremos el comprobante a <strong>{pedido.enviadoA}</strong>.</p>
         <div className="acciones">
           <Link to="/pedidos" className="btn">Ver mis pedidos</Link>
@@ -100,13 +106,25 @@ function CartContent() {
         {!correoValido && <span className="texto-error">Ingresa un correo valido</span>}
       </div>
 
+      <CuponCarrito total={total} aplicado={cupon} onCambio={setCupon} />
+
       <div className="carrito-resumen">
         <button type="button" className="btn-texto" disabled={ocupado} onClick={vaciar}>
           Vaciar carrito
         </button>
         <div className="carrito-total">
-          <span>Total</span>
-          <strong>{precio(total)}</strong>
+          {cuponVigente ? (
+            <>
+              <span className="texto-suave">Subtotal {precio(total)} · Descuento -{precio(cuponVigente.descuento)}</span>
+              <span>Total a pagar</span>
+              <strong>{precio(cuponVigente.total)}</strong>
+            </>
+          ) : (
+            <>
+              <span>Total</span>
+              <strong>{precio(total)}</strong>
+            </>
+          )}
         </div>
         <button type="button" className="btn" disabled={ocupado || !correoValido} onClick={finalizar}>
           {ocupado ? 'Procesando...' : 'Confirmar compra'}
